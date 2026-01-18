@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Obras</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏗️ Control de Obras</h1>
+            <div class="header-actions">
+                <button onclick="exportData()" class="btn-secondary">📤 Exportar</button>
+                <label class="btn-secondary">
+                    📥 Importar
+                    <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display: none">
+                </label>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('gastos')">💰 Gastos</button>
+            <button class="tab" onclick="showTab('pagos')">👷 Pagos Semanales</button>
+            <button class="tab" onclick="showTab('cambio')">💵 Cambio de Moneda</button>
+            <button class="tab" onclick="showTab('avance')">📊 Avance</button>
+            <button class="tab" onclick="showTab('resumen')">📈 Resumen</button>
+        </div>
+
+        <!-- Tab:  Gastos -->
+        <div id="tab-gastos" class="tab-content active">
+            <div class="card">
+                <h2>Registrar Compra de Materiales</h2>
+                <form onsubmit="addGasto(event)">
+                    <input type="date" id="gastoFecha" required>
+                    <input type="text" id="gastoDescripcion" placeholder="Descripción" required>
+                    <select id="gastoCategoria" required>
+                        <option value="">Selecciona categoría</option>
+                        <option value="Materiales">Materiales</option>
+                        <option value="Herramientas">Herramientas</option>
+                        <option value="Mano de Obra">Mano de Obra</option>
+                        <option value="Electricidad">Electricidad</option>
+                        <option value="Plomería">Plomería</option>
+                        <option value="Pintura">Pintura</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                    <input type="number" id="gastoCantidad" placeholder="Cantidad en $" step="0.01" required>
+                    <select id="gastoMoneda" required>
+                        <option value="ARS">Pesos (ARS)</option>
+                        <option value="USD">Dólares (USD)</option>
+                    </select>
+                    <button type="submit" class="btn-primary">Agregar Gasto</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="filter-section">
+                    <h3>Filtrar por: </h3>
+                    <select id="filtroCategoria" onchange="filterGastos()">
+                        <option value="">Todas las categorías</option>
+                        <option value="Materiales">Materiales</option>
+                        <option value="Herramientas">Herramientas</option>
+                        <option value="Mano de Obra">Mano de Obra</option>
+                        <option value="Electricidad">Electricidad</option>
+                        <option value="Plomería">Plomería</option>
+                        <option value="Pintura">Pintura</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                </div>
+                <div id="gastosLista"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Pagos Semanales -->
+        <div id="tab-pagos" class="tab-content">
+            <div class="card">
+                <h2>Registrar Pago Semanal</h2>
+                <form onsubmit="addPago(event)">
+                    <input type="week" id="pagoSemana" required>
+                    <input type="text" id="pagoTrabajador" placeholder="Nombre del trabajador" required>
+                    <input type="number" id="pagoCantidad" placeholder="Cantidad" step="0.01" required>
+                    <textarea id="pagoNotas" placeholder="Notas (opcional)"></textarea>
+                    <button type="submit" class="btn-primary">Registrar Pago</button>
+                </form>
+            </div>
+            <div class="card">
+                <div id="pagosLista"></div>
+            </div>
+        </div>
+
+        <!-- Tab:  Cambio de Moneda -->
+        <div id="tab-cambio" class="tab-content">
+            <div class="card">
+                <h2>Registrar Cambio de Moneda</h2>
+                <form onsubmit="addCambio(event)">
+                    <input type="date" id="cambioFecha" required>
+                    <input type="number" id="cambioDolares" placeholder="Dólares (USD)" step="0.01" required>
+                    <input type="number" id="cambioTasa" placeholder="Tasa de cambio" step="0.01" required>
+                    <input type="number" id="cambioPesos" placeholder="Pesos obtenidos (ARS)" step="0.01" required>
+                    <button type="submit" class="btn-primary">Registrar Cambio</button>
+                </form>
+            </div>
+            <div class="card">
+                <div id="cambiosLista"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Avance -->
+        <div id="tab-avance" class="tab-content">
+            <div class="card">
+                <h2>Registrar Avance Semanal</h2>
+                <form onsubmit="addAvance(event)">
+                    <input type="week" id="avanceSemana" required>
+                    <input type="text" id="avanceTitulo" placeholder="Título del avance" required>
+                    <textarea id="avanceDescripcion" placeholder="Descripción detallada" required></textarea>
+                    <input type="range" id="avancePorcentaje" min="0" max="100" value="0" oninput="updatePorcentaje(this.value)">
+                    <span id="porcentajeValue">0%</span>
+                    <button type="submit" class="btn-primary">Registrar Avance</button>
+                </form>
+            </div>
+            <div class="card">
+                <div id="avancesLista"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Resumen -->
+        <div id="tab-resumen" class="tab-content">
+            <div class="card">
+                <h2>Resumen General</h2>
+                <div id="resumenGeneral"></div>
+            </div>
+            <div class="card">
+                <h3>Gastos por Categoría</h3>
+                <div id="resumenCategorias"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
