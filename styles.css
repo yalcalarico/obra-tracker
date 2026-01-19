@@ -1533,6 +1533,62 @@ textarea {
     margin: 0;
 }
 
+/* Real Price Section */
+.real-price-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 16px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px solid #4caf50;
+}
+
+.real-price-input {
+    padding: 10px 16px;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: 600;
+    width: 150px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.real-price-input:focus {
+    outline: none;
+    border-color: #2e7d32;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.btn-save-price {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    white-space: nowrap;
+}
+
+.btn-save-price:hover {
+    background: linear-gradient(135deg, #388e3c 0%, #4caf50 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+.btn-save-price:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
 .budget-item-actions {
     display: flex;
     gap: 8px;
@@ -1794,5 +1850,37 @@ textarea {
         width: 100%;
         justify-content: center;
         padding: 12px 20px;
+    }
+    
+    /* Presupuesto responsive */
+    .budget-item-footer {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .real-price-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .real-price-input {
+        width: 100%;
+    }
+    
+    .btn-save-price {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .budget-summary-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .budget-area-selector {
+        flex-direction: column;
+    }
+    
+    .budget-area-tab {
+        width: 100%;
     }
 }

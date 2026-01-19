@@ -819,7 +819,6 @@ async function createNewBudget(event) {
     event.preventDefault();
     
     const budget = {
-        id: Date.now().toString(),
         nombre: document.getElementById('newBudgetName').value,
         categoria: document.getElementById('newBudgetCategory').value,
         descripcion: document.getElementById('newBudgetDescription').value || '',
@@ -926,8 +925,6 @@ async function deleteCurrentBudget() {
         `¿Estás seguro de eliminar el presupuesto "${currentBudget.nombre}" y todos sus items?`,
         async () => {
             try {
-                // Eliminar presupuesto de Firebase
-                await deleteFromFirebase('presupuestos', currentBudget.id);
                 
                 // Eliminar todos los items asociados
                 const itemsToDelete = data.presupuestoItems.filter(item => item.presupuestoId === currentBudget.id);
@@ -935,6 +932,9 @@ async function deleteCurrentBudget() {
                     await deleteFromFirebase('presupuestoItems', item.id);
                 }
                 
+                // Eliminar presupuesto de Firebase
+                await deleteFromFirebase('presupuestos', currentBudget.id);
+
                 // Eliminar del array local
                 data.presupuestos = data.presupuestos.filter(b => b.id !== currentBudget.id);
                 data.presupuestoItems = data.presupuestoItems.filter(item => item.presupuestoId !== currentBudget.id);
@@ -974,7 +974,6 @@ async function addBudgetItem(event) {
     }
     
     const item = {
-        id: Date.now().toString(),
         presupuestoId: currentBudget.id,
         nombre: document.getElementById('budgetItemName').value,
         descripcion: document.getElementById('budgetItemDescription').value,
@@ -1126,12 +1125,17 @@ function renderBudgetItems() {
                         <label for="check-${item.id}">Comprado</label>
                     </div>
                     ${item.comprado ? `
-                        <input type="number" 
-                               class="real-price-input" 
-                               placeholder="Valor real"
-                               value="${item.valorReal || ''}"
-                               onchange="updateRealPrice('${item.id}', this.value)"
-                               step="0.01">
+                        <div class="real-price-section">
+                            <input type="number" 
+                                   id="realPrice-${item.id}"
+                                   class="real-price-input" 
+                                   placeholder="Ingrese valor real"
+                                   value="${item.valorReal || ''}"
+                                   step="0.01">
+                            <button class="btn-save-price" onclick="saveRealPrice('${item.id}')">
+                                💾 Guardar
+                            </button>
+                        </div>
                     ` : ''}
                     <div class="budget-item-actions">
                         <button class="btn-delete-budget" onclick="deleteBudgetItem('${item.id}')">
@@ -1142,36 +1146,79 @@ function renderBudgetItems() {
             </div>
         `;
     }).join('');
-}
-
-async function toggleBudgetItemComprado(id) {
+}async function toggleBudgetItemComprado(id) {
     const itemIndex = data.presupuestoItems.findIndex(item => item.id === id);
     
     if (itemIndex !== -1) {
-        data.presupuestoItems[itemIndex].comprado = !data.presupuestoItems[itemIndex].comprado;
+        const wasComprado = data.presupuestoItems[itemIndex].comprado;
+        data.presupuestoItems[itemIndex].comprado = !wasComprado;
         
-        // Si se desmarca como comprado, limpiar valor real
+        // Si se desmarca como comprado, limpiar valor real y guardar
         if (!data.presupuestoItems[itemIndex].comprado) {
             data.presupuestoItems[itemIndex].valorReal = null;
-        }
-        
-        try {
-            // Actualizar en Firebase
-            await updatePresupuestoItemInFirebase(data.presupuestoItems[itemIndex]);
             
-            // Actualizar UI
-            renderBudgetItems();
-            renderBudgetSummary();
-            
+            try {
+                // Actualizar en Firebase solo cuando se desmarca
+                await updatePresupuestoItemInFirebase(data.presupuestoItems[itemIndex]);
+                
+                showNotification(
+                    'Item desmarcado',
+                    'El item ya no está marcado como comprado',
+                    'info'
+                );
+            } catch (error) {
+                console.error('Error al actualizar item:', error);
+                showNotification('Error', 'No se pudo actualizar el item', 'error');
+                // Revertir cambio en caso de error
+                data.presupuestoItems[itemIndex].comprado = wasComprado;
+            }
+        } else {
+            // Solo mostrar mensaje informativo cuando se marca como comprado
             showNotification(
-                'Item actualizado',
-                data.presupuestoItems[itemIndex].comprado ? 'Marcado como comprado' : 'Desmarcado como comprado',
+                'Item marcado como comprado',
+                'Ingresa el valor real y presiona "Guardar"',
                 'info'
             );
-        } catch (error) {
-            console.error('Error al actualizar item:', error);
-            showNotification('Error', 'No se pudo actualizar el item', 'error');
         }
+        
+        // Actualizar UI
+        renderBudgetItems();
+        renderBudgetSummary();
+    }
+}
+
+// Nueva función para guardar el valor real
+async function saveRealPrice(id) {
+    const itemIndex = data.presupuestoItems.findIndex(item => item.id === id);
+    const inputElement = document.getElementById(`realPrice-${id}`);
+    
+    if (itemIndex === -1 || !inputElement) return;
+    
+    const value = parseFloat(inputElement.value);
+    
+    if (!value || value <= 0) {
+        showNotification('Valor inválido', 'Ingresa un valor mayor a 0', 'error');
+        return;
+    }
+    
+    // Guardar el valor anterior por si hay error
+    const previousValue = data.presupuestoItems[itemIndex].valorReal;
+    data.presupuestoItems[itemIndex].valorReal = value;
+    
+    try {
+        // Actualizar en Firebase
+        await updatePresupuestoItemInFirebase(data.presupuestoItems[itemIndex]);
+        
+        // Actualizar UI
+        renderBudgetItems();
+        renderBudgetSummary();
+        
+        showNotification('Precio guardado', 'El valor real se ha guardado correctamente', 'success');
+    } catch (error) {
+        console.error('Error al actualizar precio:', error);
+        // Revertir cambio en caso de error
+        data.presupuestoItems[itemIndex].valorReal = previousValue;
+        showNotification('Error', 'No se pudo guardar el precio. Intenta nuevamente.', 'error');
     }
 }
 
