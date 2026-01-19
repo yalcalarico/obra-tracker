@@ -47,6 +47,48 @@ function showNotification(title, message, type = 'success') {
     }, 4000);
 }
 
+// ==================== SISTEMA DE CONFIRMACIÓN ====================
+function showConfirm(title, message, onConfirm, onCancel) {
+    const modal = document.createElement('div');
+    modal.className = 'confirm-modal-overlay';
+    modal.innerHTML = `
+        <div class="confirm-modal">
+            <div class="confirm-header">
+                <span class="confirm-icon">⚠️</span>
+                <h3>${title}</h3>
+            </div>
+            <div class="confirm-body">
+                <p>${message}</p>
+            </div>
+            <div class="confirm-footer">
+                <button class="btn-cancel" id="confirmCancel">Cancelar</button>
+                <button class="btn-confirm" id="confirmOk">Eliminar</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Agregar event listeners
+    document.getElementById('confirmOk').addEventListener('click', () => {
+        modal.remove();
+        if (onConfirm) onConfirm();
+    });
+    
+    document.getElementById('confirmCancel').addEventListener('click', () => {
+        modal.remove();
+        if (onCancel) onCancel();
+    });
+    
+    // Cerrar al hacer click fuera del modal
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+            if (onCancel) onCancel();
+        }
+    });
+}
+
 // Función para deshabilitar/habilitar botón con loading
 function setButtonLoading(button, loading) {
     if (loading) {
@@ -244,24 +286,28 @@ function filterGastos() {
 }
 
 async function deleteGasto(id) {
-    if (!confirm('¿Estás seguro de eliminar este gasto?')) return;
-    
-    try {
-        // Eliminar de Firebase
-        await deleteFromFirebase('gastos', id);
-        
-        // Eliminar del array local
-        data.gastos = data.gastos.filter(g => g.id !== id);
-        
-        // Actualizar UI
-        renderGastos();
-        renderResumen();
-        
-        showNotification('Gasto eliminado', 'El gasto se ha eliminado correctamente', 'success');
-    } catch (error) {
-        console.error('Error al eliminar gasto:', error);
-        showNotification('Error al eliminar', 'No se pudo eliminar el gasto. Intenta nuevamente.', 'error');
-    }
+    showConfirm(
+        'Confirmar eliminación',
+        '¿Estás seguro de que deseas eliminar este gasto? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                // Eliminar de Firebase
+                await deleteFromFirebase('gastos', id);
+                
+                // Eliminar del array local
+                data.gastos = data.gastos.filter(g => g.id !== id);
+                
+                // Actualizar UI
+                renderGastos();
+                renderResumen();
+                
+                showNotification('Gasto eliminado', 'El gasto se ha eliminado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al eliminar gasto:', error);
+                showNotification('Error al eliminar', 'No se pudo eliminar el gasto. Intenta nuevamente.', 'error');
+            }
+        }
+    );
 }
 
 // ==================== PAGOS ====================
@@ -343,24 +389,28 @@ function renderPagos() {
 }
 
 async function deletePago(id) {
-    if (!confirm('¿Estás seguro de eliminar este pago?')) return;
-    
-    try {
-        // Eliminar de Firebase
-        await deleteFromFirebase('pagos', id);
-        
-        // Eliminar del array local
-        data.pagos = data.pagos.filter(p => p.id !== id);
-        
-        // Actualizar UI
-        renderPagos();
-        renderResumen();
-        
-        showNotification('Pago eliminado', 'El pago se ha eliminado correctamente', 'success');
-    } catch (error) {
-        console.error('Error al eliminar pago:', error);
-        showNotification('Error al eliminar', 'No se pudo eliminar el pago. Intenta nuevamente.', 'error');
-    }
+    showConfirm(
+        'Confirmar eliminación',
+        '¿Estás seguro de que deseas eliminar este pago? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                // Eliminar de Firebase
+                await deleteFromFirebase('pagos', id);
+                
+                // Eliminar del array local
+                data.pagos = data.pagos.filter(p => p.id !== id);
+                
+                // Actualizar UI
+                renderPagos();
+                renderResumen();
+                
+                showNotification('Pago eliminado', 'El pago se ha eliminado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al eliminar pago:', error);
+                showNotification('Error al eliminar', 'No se pudo eliminar el pago. Intenta nuevamente.', 'error');
+            }
+        }
+    );
 }
 
 // ==================== CAMBIOS ====================
@@ -445,24 +495,28 @@ function renderCambios() {
 }
 
 async function deleteCambio(id) {
-    if (!confirm('¿Estás seguro de eliminar este cambio?')) return;
-    
-    try {
-        // Eliminar de Firebase
-        await deleteFromFirebase('cambios', id);
-        
-        // Eliminar del array local
-        data.cambios = data.cambios.filter(c => c.id !== id);
-        
-        // Actualizar UI
-        renderCambios();
-        renderResumen();
-        
-        showNotification('Cambio eliminado', 'El cambio de moneda se ha eliminado correctamente', 'success');
-    } catch (error) {
-        console.error('Error al eliminar cambio:', error);
-        showNotification('Error al eliminar', 'No se pudo eliminar el cambio. Intenta nuevamente.', 'error');
-    }
+    showConfirm(
+        'Confirmar eliminación',
+        '¿Estás seguro de que deseas eliminar este cambio de moneda? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                // Eliminar de Firebase
+                await deleteFromFirebase('cambios', id);
+                
+                // Eliminar del array local
+                data.cambios = data.cambios.filter(c => c.id !== id);
+                
+                // Actualizar UI
+                renderCambios();
+                renderResumen();
+                
+                showNotification('Cambio eliminado', 'El cambio de moneda se ha eliminado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al eliminar cambio:', error);
+                showNotification('Error al eliminar', 'No se pudo eliminar el cambio. Intenta nuevamente.', 'error');
+            }
+        }
+    );
 }
 
 // ==================== AVANCES ====================
@@ -542,23 +596,27 @@ function renderAvances() {
 }
 
 async function deleteAvance(id) {
-    if (!confirm('¿Estás seguro de eliminar este avance?')) return;
-    
-    try {
-        // Eliminar de Firebase
-        await deleteFromFirebase('avances', id);
-        
-        // Eliminar del array local
-        data.avances = data.avances.filter(a => a.id !== id);
-        
-        // Actualizar UI
-        renderAvances();
-        
-        showNotification('Avance eliminado', 'El avance se ha eliminado correctamente', 'success');
-    } catch (error) {
-        console.error('Error al eliminar avance:', error);
-        showNotification('Error al eliminar', 'No se pudo eliminar el avance. Intenta nuevamente.', 'error');
-    }
+    showConfirm(
+        'Confirmar eliminación',
+        '¿Estás seguro de que deseas eliminar este avance? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                // Eliminar de Firebase
+                await deleteFromFirebase('avances', id);
+                
+                // Eliminar del array local
+                data.avances = data.avances.filter(a => a.id !== id);
+                
+                // Actualizar UI
+                renderAvances();
+                
+                showNotification('Avance eliminado', 'El avance se ha eliminado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al eliminar avance:', error);
+                showNotification('Error al eliminar', 'No se pudo eliminar el avance. Intenta nuevamente.', 'error');
+            }
+        }
+    );
 }
 
 // ==================== RESUMEN ====================
