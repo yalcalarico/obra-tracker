@@ -82,6 +82,51 @@ async function loadDataFromFirebase() {
     }
 }
 
+// Recargar datos desde Firebase (para sincronización)
+async function reloadDataFromFirebase() {
+    try {
+        // Obtener colecciones
+        const gastosSnapshot = await db.collection('gastos').get();
+        const pagosSnapshot = await db.collection('pagos').get();
+        const cambiosSnapshot = await db.collection('cambios').get();
+        const avancesSnapshot = await db.collection('avances').get();
+        
+        // Convertir a arrays
+        data.gastos = gastosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        data.pagos = pagosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        data.cambios = cambiosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        data.avances = avancesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Renderizar todo
+        renderGastos();
+        renderPagos();
+        renderCambios();
+        renderAvances();
+        renderResumen();
+        
+        console.log('🔄 Datos recargados desde Firebase');
+        
+        // Mostrar notificación de éxito
+        if (typeof showNotification === 'function') {
+            showNotification(
+                'Datos actualizados',
+                'Se sincronizaron los últimos cambios',
+                'success'
+            );
+        }
+        
+    } catch (error) {
+        console.error('❌ Error al recargar datos desde Firebase:', error);
+        if (typeof showNotification === 'function') {
+            showNotification(
+                'Error al actualizar',
+                'No se pudieron sincronizar los datos',
+                'error'
+            );
+        }
+    }
+}
+
 // Guardar gasto en Firebase
 async function saveGastoToFirebase(gasto) {
     try {

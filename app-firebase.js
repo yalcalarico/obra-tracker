@@ -16,6 +16,93 @@ let editMode = {
     id: null
 };
 
+// ==================== SISTEMA DE NOTIFICACIONES ====================
+function showNotification(title, message, type = 'success') {
+    const container = document.getElementById('notificationContainer');
+    
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        info: 'ℹ️'
+    };
+    
+    notification.innerHTML = `
+        <span class="notification-icon">${icons[type]}</span>
+        <div class="notification-content">
+            <div class="notification-title">${title}</div>
+            <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    container.appendChild(notification);
+    
+    // Auto-remove después de 4 segundos
+    setTimeout(() => {
+        notification.classList.add('hiding');
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+
+// Función para deshabilitar/habilitar botón con loading
+function setButtonLoading(button, loading) {
+    if (loading) {
+        button.disabled = true;
+        button.classList.add('loading');
+        button.dataset.originalText = button.textContent;
+        button.textContent = 'Guardando...';
+    } else {
+        button.disabled = false;
+        button.classList.remove('loading');
+        button.textContent = button.dataset.originalText || button.textContent;
+    }
+}
+
+// ==================== FUNCIÓN DE REFRESH MANUAL ====================
+function refreshData() {
+    const refreshButton = document.getElementById('refreshButton');
+    const loadingOverlay = document.getElementById('historialLoading');
+    const lastUpdateText = document.getElementById('lastUpdate');
+    
+    // Deshabilitar botón y mostrar loading
+    refreshButton.disabled = true;
+    refreshButton.classList.add('loading');
+    refreshButton.querySelector('.refresh-text').textContent = 'Sincronizando...';
+    loadingOverlay.classList.remove('hidden');
+    
+    // Recargar datos de Firebase
+    reloadDataFromFirebase()
+        .then(() => {
+            // Actualizar timestamp
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = now.toLocaleDateString('es-ES');
+            lastUpdateText.textContent = `Última actualización: ${timeStr} ${dateStr}`;
+            
+            // Ocultar loading y habilitar botón
+            loadingOverlay.classList.add('hidden');
+            refreshButton.disabled = false;
+            refreshButton.classList.remove('loading');
+            refreshButton.querySelector('.refresh-text').textContent = 'Actualizar datos';
+            
+            showNotification('Datos actualizados', 'Los datos se han sincronizado correctamente', 'success');
+        })
+        .catch((error) => {
+            console.error('Error al refrescar datos:', error);
+            
+            // Ocultar loading y habilitar botón
+            loadingOverlay.classList.add('hidden');
+            refreshButton.disabled = false;
+            refreshButton.classList.remove('loading');
+            refreshButton.querySelector('.refresh-text').textContent = 'Actualizar datos';
+            
+            showNotification('Error al actualizar', 'No se pudieron sincronizar los datos. Intenta nuevamente.', 'error');
+        });
+}
+
 // Cargar datos al iniciar
 window.onload = function() {
     // Inicializar Firebase primero
@@ -69,6 +156,10 @@ function showHistorial(tipo) {
 async function addGasto(event) {
     event.preventDefault();
     
+    // Obtener el botón de submit
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitButton, true);
+    
     const gasto = {
         fecha: document.getElementById('gastoFecha').value,
         descripcion: document.getElementById('gastoDescripcion').value,
@@ -83,22 +174,38 @@ async function addGasto(event) {
         const id = await saveGastoToFirebase(gasto);
         gasto.id = id;
         
-        // Agregar a array local
+        // Agregar SOLO a array local (no recargar de Firebase)
         data.gastos.push(gasto);
         
         // Limpiar formulario
         event.target.reset();
         document.getElementById('gastoFecha').valueAsDate = new Date();
         
-        // Actualizar UI
+        // Actualizar UI (sin recargar desde Firebase)
         renderGastos();
         renderResumen();
+        
+        // Mostrar notificación de éxito
+        showNotification(
+            'Gasto registrado',
+            `${gasto.descripcion} - ${gasto.moneda} $${gasto.cantidad.toFixed(2)}`,
+            'success'
+        );
         
         console.log('✅ Gasto agregado');
     } catch (error) {
         console.error('Error al agregar gasto:', error);
-        alert('Error al guardar el gasto. Intenta nuevamente.');
+        showNotification(
+            'Error al guardar',
+            'No se pudo guardar el gasto. Intenta nuevamente.',
+            'error'
+        );
+    } finally {
+        setButtonLoading(submitButton, false);
     }
+    
+    // Importante: prevenir doble envío
+    return false;
 }
 
 function renderGastos() {
@@ -150,16 +257,19 @@ async function deleteGasto(id) {
         renderGastos();
         renderResumen();
         
-        console.log('✅ Gasto eliminado');
+        showNotification('Gasto eliminado', 'El gasto se ha eliminado correctamente', 'success');
     } catch (error) {
         console.error('Error al eliminar gasto:', error);
-        alert('Error al eliminar el gasto. Intenta nuevamente.');
+        showNotification('Error al eliminar', 'No se pudo eliminar el gasto. Intenta nuevamente.', 'error');
     }
 }
 
 // ==================== PAGOS ====================
 async function addPago(event) {
     event.preventDefault();
+    
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitButton, true);
     
     const pago = {
         semana: document.getElementById('pagoSemana').value,
@@ -184,11 +294,26 @@ async function addPago(event) {
         renderPagos();
         renderResumen();
         
+        // Mostrar notificación de éxito
+        showNotification(
+            'Pago registrado',
+            `${pago.trabajador} - ARS $${pago.cantidad.toFixed(2)}`,
+            'success'
+        );
+        
         console.log('✅ Pago agregado');
     } catch (error) {
         console.error('Error al agregar pago:', error);
-        alert('Error al guardar el pago. Intenta nuevamente.');
+        showNotification(
+            'Error al guardar',
+            'No se pudo guardar el pago. Intenta nuevamente.',
+            'error'
+        );
+    } finally {
+        setButtonLoading(submitButton, false);
     }
+    
+    return false;
 }
 
 function renderPagos() {
@@ -231,16 +356,19 @@ async function deletePago(id) {
         renderPagos();
         renderResumen();
         
-        console.log('✅ Pago eliminado');
+        showNotification('Pago eliminado', 'El pago se ha eliminado correctamente', 'success');
     } catch (error) {
         console.error('Error al eliminar pago:', error);
-        alert('Error al eliminar el pago. Intenta nuevamente.');
+        showNotification('Error al eliminar', 'No se pudo eliminar el pago. Intenta nuevamente.', 'error');
     }
 }
 
 // ==================== CAMBIOS ====================
 async function addCambio(event) {
     event.preventDefault();
+    
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitButton, true);
     
     const cambio = {
         fecha: document.getElementById('cambioFecha').value,
@@ -266,11 +394,26 @@ async function addCambio(event) {
         renderCambios();
         renderResumen();
         
+        // Mostrar notificación de éxito
+        showNotification(
+            'Cambio registrado',
+            `USD $${cambio.dolares.toFixed(2)} → ARS $${cambio.pesos.toFixed(2)}`,
+            'success'
+        );
+        
         console.log('✅ Cambio agregado');
     } catch (error) {
         console.error('Error al agregar cambio:', error);
-        alert('Error al guardar el cambio. Intenta nuevamente.');
+        showNotification(
+            'Error al guardar',
+            'No se pudo guardar el cambio. Intenta nuevamente.',
+            'error'
+        );
+    } finally {
+        setButtonLoading(submitButton, false);
     }
+    
+    return false;
 }
 
 function renderCambios() {
@@ -315,16 +458,19 @@ async function deleteCambio(id) {
         renderCambios();
         renderResumen();
         
-        console.log('✅ Cambio eliminado');
+        showNotification('Cambio eliminado', 'El cambio de moneda se ha eliminado correctamente', 'success');
     } catch (error) {
         console.error('Error al eliminar cambio:', error);
-        alert('Error al eliminar el cambio. Intenta nuevamente.');
+        showNotification('Error al eliminar', 'No se pudo eliminar el cambio. Intenta nuevamente.', 'error');
     }
 }
 
 // ==================== AVANCES ====================
 async function addAvance(event) {
     event.preventDefault();
+    
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitButton, true);
     
     const avance = {
         fecha: document.getElementById('avanceFecha').value,
@@ -347,11 +493,26 @@ async function addAvance(event) {
         // Actualizar UI
         renderAvances();
         
+        // Mostrar notificación de éxito
+        showNotification(
+            'Avance registrado',
+            `${avance.descripcion} - ${avance.porcentaje}% completado`,
+            'success'
+        );
+        
         console.log('✅ Avance agregado');
     } catch (error) {
         console.error('Error al agregar avance:', error);
-        alert('Error al guardar el avance. Intenta nuevamente.');
+        showNotification(
+            'Error al guardar',
+            'No se pudo guardar el avance. Intenta nuevamente.',
+            'error'
+        );
+    } finally {
+        setButtonLoading(submitButton, false);
     }
+    
+    return false;
 }
 
 function renderAvances() {
@@ -393,10 +554,10 @@ async function deleteAvance(id) {
         // Actualizar UI
         renderAvances();
         
-        console.log('✅ Avance eliminado');
+        showNotification('Avance eliminado', 'El avance se ha eliminado correctamente', 'success');
     } catch (error) {
         console.error('Error al eliminar avance:', error);
-        alert('Error al eliminar el avance. Intenta nuevamente.');
+        showNotification('Error al eliminar', 'No se pudo eliminar el avance. Intenta nuevamente.', 'error');
     }
 }
 

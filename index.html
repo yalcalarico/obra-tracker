@@ -16,6 +16,9 @@
         </div>
     </div>
 
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
     <div class="container">
         <header>
             <div class="header-content">
@@ -198,10 +201,25 @@
 
         <!-- Tab: Historial y Resumen -->
         <div id="tab-historial" class="tab-content">
+            <!-- Botón de refresh -->
+            <div class="refresh-section">
+                <button id="refreshButton" onclick="refreshData()" class="btn-refresh">
+                    <span class="refresh-icon">🔄</span>
+                    <span class="refresh-text">Actualizar datos</span>
+                </button>
+                <span id="lastUpdate" class="last-update-text"></span>
+            </div>
+
+            <!-- Loading overlay para el tab -->
+            <div id="historialLoading" class="tab-loading hidden">
+                <div class="loading-spinner"></div>
+                <p>Sincronizando datos...</p>
+            </div>
+
             <!-- Sección de Resumen -->
             <div class="card">
                 <div class="card-header">
-                    <h2>� Resumen General</h2>
+                    <h2>Resumen General</h2>
                     <p class="card-description">Análisis completo de tu proyecto</p>
                 </div>
                 <div id="resumenGeneral"></div>
@@ -216,7 +234,7 @@
             <!-- Sección de Historial -->
             <div class="card">
                 <div class="card-header">
-                    <h2>�📋 Historial Completo</h2>
+                    <h2>📋 Historial Completo</h2>
                     <p class="card-description">Revisa todos tus registros</p>
                 </div>
                 
