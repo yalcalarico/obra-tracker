@@ -208,20 +208,28 @@
             <div class="card">
                 <div class="card-header">
                     <h2>💼 Gestión de Presupuesto</h2>
-                    <p class="card-description">Organiza tu presupuesto por áreas y compara estimado vs real</p>
+                    <p class="card-description">Crea y organiza presupuestos personalizados para tu proyecto</p>
                 </div>
 
-                <!-- Selector de área -->
-                <div class="budget-area-selector">
-                    <button class="budget-area-tab active" onclick="showBudgetArea('baño')">🚿 Baño</button>
-                    <button class="budget-area-tab" onclick="showBudgetArea('cocina')">🍳 Cocina</button>
-                    <button class="budget-area-tab" onclick="showBudgetArea('dormitorio')">🛏️ Dormitorio</button>
-                    <button class="budget-area-tab" onclick="showBudgetArea('living')">🛋️ Living</button>
-                    <button class="budget-area-tab" onclick="showBudgetArea('exterior')">🏡 Exterior</button>
-                    <button class="budget-area-tab" onclick="showBudgetArea('otros')">📦 Otros</button>
+                <!-- Botón para crear nuevo presupuesto -->
+                <div class="budget-header-actions">
+                    <button class="btn-new-budget" onclick="showNewBudgetModal()">
+                        ➕ Crear Nuevo Presupuesto
+                    </button>
                 </div>
 
-                <!-- Formulario para agregar item -->
+                <!-- Selector de presupuestos -->
+                <div id="budgetSelector" class="budget-area-selector">
+                    <!-- Se llenará dinámicamente con JavaScript -->
+                    <div class="budget-empty-state">
+                        <p>📋 No tienes presupuestos creados</p>
+                        <p style="font-size: 0.9em; color: #6c757d;">Crea tu primer presupuesto para comenzar</p>
+                    </div>
+                </div>
+
+                <!-- Contenedor del presupuesto activo -->
+                <div id="activeBudgetContainer" style="display: none;">
+                    <!-- Formulario para agregar item -->
                 <div class="card budget-form-card">
                     <h3>➕ Agregar Item al Presupuesto</h3>
                     <form onsubmit="addBudgetItem(event)" class="modern-form">
@@ -289,13 +297,60 @@
 
                 <!-- Lista de items del presupuesto -->
                 <div class="card">
-                    <h3>📋 Items del Área <span id="currentAreaName">Baño</span></h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>📋 Items de <span id="currentBudgetName">Presupuesto</span></h3>
+                        <button class="btn-delete-budget-main" onclick="deleteCurrentBudget()" style="display: none;" id="deleteBudgetBtn">
+                            🗑️ Eliminar Presupuesto
+                        </button>
+                    </div>
                     <div id="budgetItemsList" class="budget-items-list"></div>
+                </div>
                 </div>
             </div>
         </div>
 
         <!-- Tab: Historial y Resumen -->
+
+    <!-- Modal para crear nuevo presupuesto -->
+    <div id="newBudgetModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Crear Nuevo Presupuesto</h3>
+                <button class="modal-close" onclick="closeNewBudgetModal()">×</button>
+            </div>
+            <form onsubmit="createNewBudget(event)" class="modern-form">
+                <div class="form-group">
+                    <label>📝 Nombre del Presupuesto</label>
+                    <input type="text" id="newBudgetName" placeholder="Ej: Baño Principal, Cocina Moderna..." required>
+                </div>
+                <div class="form-group">
+                    <label>📂 Categoría</label>
+                    <select id="newBudgetCategory" required>
+                        <option value="">Selecciona una categoría</option>
+                        <option value="baño">🚿 Baño</option>
+                        <option value="cocina">🍳 Cocina</option>
+                        <option value="dormitorio">🛏️ Dormitorio</option>
+                        <option value="living">🛋️ Living/Comedor</option>
+                        <option value="exterior">🏡 Exterior</option>
+                        <option value="estructura">🏗️ Estructura</option>
+                        <option value="instalaciones">🔧 Instalaciones</option>
+                        <option value="terminaciones">🎨 Terminaciones</option>
+                        <option value="otros">📦 Otros</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>📝 Descripción (opcional)</label>
+                    <textarea id="newBudgetDescription" placeholder="Detalles sobre este presupuesto..." rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeNewBudgetModal()">Cancelar</button>
+                    <button type="submit" class="btn-confirm">Crear Presupuesto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
         <div id="tab-historial" class="tab-content">
             <!-- Botón de refresh -->
             <div class="refresh-section">

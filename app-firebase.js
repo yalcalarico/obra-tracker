@@ -7,18 +7,12 @@ let data = {
     pagos: [],
     cambios: [],
     avances: [],
-    presupuesto: {
-        baño: [],
-        cocina: [],
-        dormitorio: [],
-        living: [],
-        exterior: [],
-        otros: []
-    }
+    presupuestos: [], // Array de presupuestos
+    presupuestoItems: [] // Items de todos los presupuestos
 };
 
-// Variable para el área actual del presupuesto
-let currentBudgetArea = 'baño';
+// Variable para el presupuesto actual
+let currentBudget = null;
 
 // Variables para modo edición
 let editMode = {
@@ -809,33 +803,164 @@ function formatDate(dateString) {
 }
 
 // ==================== PRESUPUESTO ====================
-function showBudgetArea(area) {
-    currentBudgetArea = area;
+// Modal de nuevo presupuesto
+function showNewBudgetModal() {
+    document.getElementById('newBudgetModal').style.display = 'flex';
+}
+
+function closeNewBudgetModal() {
+    document.getElementById('newBudgetModal').style.display = 'none';
+    document.getElementById('newBudgetName').value = '';
+    document.getElementById('newBudgetCategory').value = '';
+    document.getElementById('newBudgetDescription').value = '';
+}
+
+async function createNewBudget(event) {
+    event.preventDefault();
+    
+    const budget = {
+        id: Date.now().toString(),
+        nombre: document.getElementById('newBudgetName').value,
+        categoria: document.getElementById('newBudgetCategory').value,
+        descripcion: document.getElementById('newBudgetDescription').value || '',
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        // Guardar en Firebase
+        const id = await saveBudgetToFirebase(budget);
+        budget.id = id;
+        
+        // Agregar al array local
+        data.presupuestos.push(budget);
+        
+        // Renderizar selector de presupuestos
+        renderBudgetSelector();
+        
+        // Seleccionar automáticamente el nuevo presupuesto
+        selectBudget(budget.id);
+        
+        // Cerrar modal
+        closeNewBudgetModal();
+        
+        showNotification(
+            'Presupuesto creado',
+            `${budget.nombre} ha sido creado exitosamente`,
+            'success'
+        );
+    } catch (error) {
+        console.error('Error al crear presupuesto:', error);
+        showNotification(
+            'Error al crear',
+            'No se pudo crear el presupuesto. Intenta nuevamente.',
+            'error'
+        );
+    }
+    
+    return false;
+}
+
+function renderBudgetSelector() {
+    const selector = document.getElementById('budgetSelector');
+    
+    if (data.presupuestos.length === 0) {
+        selector.innerHTML = `
+            <div class="budget-empty-state">
+                <p>📋 No tienes presupuestos creados</p>
+                <p style="font-size: 0.9em; color: #6c757d;">Crea tu primer presupuesto para comenzar</p>
+            </div>
+        `;
+        document.getElementById('activeBudgetContainer').style.display = 'none';
+        return;
+    }
+    
+    const categoryIcons = {
+        'baño': '🚿',
+        'cocina': '🍳',
+        'dormitorio': '🛏️',
+        'living': '🛋️',
+        'exterior': '🏡',
+        'estructura': '🏗️',
+        'instalaciones': '🔧',
+        'terminaciones': '🎨',
+        'otros': '📦'
+    };
+    
+    selector.innerHTML = data.presupuestos.map(budget => `
+        <button class="budget-area-tab ${currentBudget && currentBudget.id === budget.id ? 'active' : ''}" 
+                onclick="selectBudget('${budget.id}')">
+            <div class="budget-tab-name">
+                ${categoryIcons[budget.categoria] || '📋'} ${budget.nombre}
+            </div>
+            ${budget.descripcion ? `<div class="budget-tab-category">${budget.descripcion.substring(0, 30)}...</div>` : ''}
+        </button>
+    `).join('');
+}
+
+function selectBudget(budgetId) {
+    // Encontrar el presupuesto
+    currentBudget = data.presupuestos.find(b => b.id === budgetId);
+    
+    if (!currentBudget) return;
+    
+    // Mostrar contenedor activo
+    document.getElementById('activeBudgetContainer').style.display = 'block';
+    document.getElementById('deleteBudgetBtn').style.display = 'inline-flex';
+    
+    // Actualizar nombre del presupuesto
+    document.getElementById('currentBudgetName').textContent = currentBudget.nombre;
     
     // Actualizar tabs activos
-    document.querySelectorAll('.budget-area-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    event.target.classList.add('active');
+    renderBudgetSelector();
     
-    // Actualizar nombre del área
-    const areaNames = {
-        'baño': 'Baño',
-        'cocina': 'Cocina',
-        'dormitorio': 'Dormitorio',
-        'living': 'Living',
-        'exterior': 'Exterior',
-        'otros': 'Otros'
-    };
-    document.getElementById('currentAreaName').textContent = areaNames[area];
-    
-    // Renderizar items del área
+    // Renderizar items y resumen
     renderBudgetItems();
     renderBudgetSummary();
 }
 
+async function deleteCurrentBudget() {
+    if (!currentBudget) return;
+    
+    showConfirm(
+        'Confirmar eliminación',
+        `¿Estás seguro de eliminar el presupuesto "${currentBudget.nombre}" y todos sus items?`,
+        async () => {
+            try {
+                // Eliminar presupuesto de Firebase
+                await deleteFromFirebase('presupuestos', currentBudget.id);
+                
+                // Eliminar todos los items asociados
+                const itemsToDelete = data.presupuestoItems.filter(item => item.presupuestoId === currentBudget.id);
+                for (const item of itemsToDelete) {
+                    await deleteFromFirebase('presupuestoItems', item.id);
+                }
+                
+                // Eliminar del array local
+                data.presupuestos = data.presupuestos.filter(b => b.id !== currentBudget.id);
+                data.presupuestoItems = data.presupuestoItems.filter(item => item.presupuestoId !== currentBudget.id);
+                
+                // Resetear presupuesto actual
+                currentBudget = null;
+                
+                // Renderizar
+                renderBudgetSelector();
+                
+                showNotification('Presupuesto eliminado', 'El presupuesto ha sido eliminado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al eliminar presupuesto:', error);
+                showNotification('Error', 'No se pudo eliminar el presupuesto', 'error');
+            }
+        }
+    );
+}
+
 async function addBudgetItem(event) {
     event.preventDefault();
+    
+    if (!currentBudget) {
+        showNotification('Error', 'Debes seleccionar un presupuesto primero', 'error');
+        return false;
+    }
     
     const submitButton = event.target.querySelector('button[type="submit"]');
     setButtonLoading(submitButton, true);
@@ -850,7 +975,7 @@ async function addBudgetItem(event) {
     
     const item = {
         id: Date.now().toString(),
-        area: currentBudgetArea,
+        presupuestoId: currentBudget.id,
         nombre: document.getElementById('budgetItemName').value,
         descripcion: document.getElementById('budgetItemDescription').value,
         valorEstimado: parseFloat(document.getElementById('budgetItemEstimated').value),
@@ -862,19 +987,18 @@ async function addBudgetItem(event) {
     
     try {
         // Guardar en Firebase
-        const id = await saveBudgetItemToFirebase(item);
+        const id = await savePresupuestoItemToFirebase(item);
         item.id = id;
         
         // Agregar al array local
-        if (!data.presupuesto[currentBudgetArea]) {
-            data.presupuesto[currentBudgetArea] = [];
-        }
-        data.presupuesto[currentBudgetArea].push(item);
+        data.presupuestoItems.push(item);
         
         // Limpiar formulario
         event.target.reset();
-        document.getElementById('imagePreview').classList.add('hidden');
-        document.getElementById('imagePreview').innerHTML = '';
+        if (document.getElementById('imagePreview')) {
+            document.getElementById('imagePreview').classList.add('hidden');
+            document.getElementById('imagePreview').innerHTML = '';
+        }
         
         // Actualizar UI
         renderBudgetItems();
@@ -882,7 +1006,7 @@ async function addBudgetItem(event) {
         
         showNotification(
             'Item agregado',
-            `${item.nombre} agregado al presupuesto de ${currentBudgetArea}`,
+            `${item.nombre} agregado al presupuesto`,
             'success'
         );
     } catch (error) {
@@ -938,14 +1062,26 @@ function removeImagePreview() {
 
 function renderBudgetItems() {
     const lista = document.getElementById('budgetItemsList');
-    const items = data.presupuesto[currentBudgetArea] || [];
+    
+    if (!currentBudget) {
+        lista.innerHTML = `
+            <div class="budget-empty">
+                <div class="budget-empty-icon">📋</div>
+                <h3>Selecciona un presupuesto</h3>
+                <p>Elige un presupuesto para ver y agregar items</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const items = data.presupuestoItems.filter(item => item.presupuestoId === currentBudget.id);
     
     if (items.length === 0) {
         lista.innerHTML = `
             <div class="budget-empty">
                 <div class="budget-empty-icon">📋</div>
-                <h3>No hay items en esta área</h3>
-                <p>Comienza agregando items a tu presupuesto</p>
+                <h3>No hay items en este presupuesto</h3>
+                <p>Comienza agregando items usando el formulario</p>
             </div>
         `;
         return;
@@ -1009,20 +1145,19 @@ function renderBudgetItems() {
 }
 
 async function toggleBudgetItemComprado(id) {
-    const area = currentBudgetArea;
-    const itemIndex = data.presupuesto[area].findIndex(item => item.id === id);
+    const itemIndex = data.presupuestoItems.findIndex(item => item.id === id);
     
     if (itemIndex !== -1) {
-        data.presupuesto[area][itemIndex].comprado = !data.presupuesto[area][itemIndex].comprado;
+        data.presupuestoItems[itemIndex].comprado = !data.presupuestoItems[itemIndex].comprado;
         
         // Si se desmarca como comprado, limpiar valor real
-        if (!data.presupuesto[area][itemIndex].comprado) {
-            data.presupuesto[area][itemIndex].valorReal = null;
+        if (!data.presupuestoItems[itemIndex].comprado) {
+            data.presupuestoItems[itemIndex].valorReal = null;
         }
         
         try {
             // Actualizar en Firebase
-            await updateBudgetItemInFirebase(data.presupuesto[area][itemIndex]);
+            await updatePresupuestoItemInFirebase(data.presupuestoItems[itemIndex]);
             
             // Actualizar UI
             renderBudgetItems();
@@ -1030,7 +1165,7 @@ async function toggleBudgetItemComprado(id) {
             
             showNotification(
                 'Item actualizado',
-                data.presupuesto[area][itemIndex].comprado ? 'Marcado como comprado' : 'Desmarcado como comprado',
+                data.presupuestoItems[itemIndex].comprado ? 'Marcado como comprado' : 'Desmarcado como comprado',
                 'info'
             );
         } catch (error) {
@@ -1041,15 +1176,14 @@ async function toggleBudgetItemComprado(id) {
 }
 
 async function updateRealPrice(id, value) {
-    const area = currentBudgetArea;
-    const itemIndex = data.presupuesto[area].findIndex(item => item.id === id);
+    const itemIndex = data.presupuestoItems.findIndex(item => item.id === id);
     
     if (itemIndex !== -1) {
-        data.presupuesto[area][itemIndex].valorReal = parseFloat(value) || 0;
+        data.presupuestoItems[itemIndex].valorReal = parseFloat(value) || 0;
         
         try {
             // Actualizar en Firebase
-            await updateBudgetItemInFirebase(data.presupuesto[area][itemIndex]);
+            await updatePresupuestoItemInFirebase(data.presupuestoItems[itemIndex]);
             
             // Actualizar UI
             renderBudgetItems();
@@ -1062,20 +1196,17 @@ async function updateRealPrice(id, value) {
         }
     }
 }
-
 async function deleteBudgetItem(id) {
     showConfirm(
         'Confirmar eliminación',
         '¿Estás seguro de que deseas eliminar este item del presupuesto?',
         async () => {
             try {
-                const area = currentBudgetArea;
-                
                 // Eliminar de Firebase
-                await deleteFromFirebase('presupuesto', id);
+                await deleteFromFirebase('presupuestoItems', id);
                 
                 // Eliminar del array local
-                data.presupuesto[area] = data.presupuesto[area].filter(item => item.id !== id);
+                data.presupuestoItems = data.presupuestoItems.filter(item => item.id !== id);
                 
                 // Actualizar UI
                 renderBudgetItems();
@@ -1091,7 +1222,9 @@ async function deleteBudgetItem(id) {
 }
 
 function renderBudgetSummary() {
-    const items = data.presupuesto[currentBudgetArea] || [];
+    if (!currentBudget) return;
+    
+    const items = data.presupuestoItems.filter(item => item.presupuestoId === currentBudget.id);
     
     const totalItems = items.length;
     const compradosItems = items.filter(item => item.comprado).length;
