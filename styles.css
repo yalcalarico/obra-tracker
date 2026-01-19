@@ -379,6 +379,7 @@ body {
     justify-content: space-between;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 .item-amount {
@@ -392,6 +393,8 @@ body {
     align-items: center;
     gap: 6px;
     box-shadow: 0 2px 8px rgba(30, 60, 114, 0.1);
+    white-space: nowrap;
+    flex-shrink: 1;
 }
 
 .item-amount::before {
@@ -413,6 +416,9 @@ body {
     align-items: center;
     gap: 6px;
     box-shadow: 0 4px 12px rgba(238, 90, 111, 0.3);
+    white-space: nowrap;
+    min-width: fit-content;
+    flex-shrink: 0;
 }
 
 .btn-delete:hover {
@@ -1032,5 +1038,23 @@ textarea {
     
     .historial-tabs {
         flex-direction: column;
+    }
+    
+    /* Asegurar que los botones se vean bien en móvil */
+    .item-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .item-amount {
+        justify-content: center;
+        font-size: 1.2em;
+    }
+    
+    .btn-delete {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 20px;
     }
 }

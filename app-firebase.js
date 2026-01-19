@@ -579,6 +579,7 @@ function renderResumen() {
     
     const totalPagos = data.pagos.reduce((sum, p) => sum + p.cantidad, 0);
     
+    const totalDolaresComprados = data.cambios.reduce((sum, c) => sum + c.dolares, 0);
     const totalCambios = data.cambios.reduce((sum, c) => sum + c.pesos, 0);
     
     // Calcular promedio de tasa de cambio
@@ -586,30 +587,34 @@ function renderResumen() {
         ? data.cambios.reduce((sum, c) => sum + c.tasa, 0) / data.cambios.length
         : 1000;
     
-    const totalGeneral = totalGastosARS + (totalGastosUSD * tasaPromedio) + totalPagos;
+    const totalGeneral = totalGastosARS + totalPagos;
     
     // Renderizar resumen general
     general.innerHTML = `
         <div class="summary-grid">
             <div class="summary-card">
-                <div class="summary-icon">💰</div>
-                <div class="summary-label">Gastos en ARS</div>
-                <div class="summary-value">$${totalGastosARS.toFixed(2)}</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon">💵</div>
-                <div class="summary-label">Gastos en USD</div>
-                <div class="summary-value">$${totalGastosUSD.toFixed(2)}</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon">👷</div>
-                <div class="summary-label">Total Pagos</div>
-                <div class="summary-value">$${totalPagos.toFixed(2)}</div>
+                <div class="summary-value">
+                    <span><strong>💵 Total Gastos en Pesos: </strong></span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalGastosARS.toFixed(2)} ARS</span>
+                </div>
+                <div class="summary-value">
+                    <span><strong>💵 Total Gastos en Dólares:</strong></span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalGastosUSD.toFixed(2)} USD</span>
+                </div>
+                <div class="summary-value">
+                    <span><strong>👷 Total Pagos a Trabajadores:</strong></span>
+                    <span style="font-size:  1.3em; color:#1e3c72; font-weight: bold;">$${totalPagos.toFixed(2)} ARS</span>
+                </div>
+                <div class="summary-value">
+                    <span><strong>💱 Dólares Cambiados:</strong></span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalDolaresComprados.toFixed(2)} USD → $${totalCambios.toFixed(2)} ARS</span>
+                </div>
             </div>
             <div class="summary-card highlight">
-                <div class="summary-icon">📊</div>
-                <div class="summary-label">Total General (ARS)</div>
-                <div class="summary-value">$${totalGeneral.toFixed(2)}</div>
+                <div class="summary-value">
+                    <span><strong>📊 Total General (ARS)</strong></span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalGeneral.toFixed(2)}</span>
+                </div>
             </div>
         </div>
     `;
@@ -632,8 +637,8 @@ function renderResumen() {
                 return `
                     <div class="categoria-item">
                         <div class="categoria-header">
-                            <span class="categoria-nombre">${categoria}</span>
-                            <span class="categoria-monto">$${total.toFixed(2)} (${porcentaje}%)</span>
+                            <span class="categoria-nombre"><strong>${categoria}</strong></span>
+                            <span class="categoria-monto" style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${total.toFixed(2)} (${porcentaje}%)</span>
                         </div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${porcentaje}%"></div>
