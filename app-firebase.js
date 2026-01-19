@@ -16,6 +16,135 @@ let editMode = {
     id: null
 };
 
+// ==================== SISTEMA DE NOTIFICACIONES ====================
+function showNotification(title, message, type = 'success') {
+    const container = document.getElementById('notificationContainer');
+    
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        info: 'ℹ️'
+    };
+    
+    notification.innerHTML = `
+        <span class="notification-icon">${icons[type]}</span>
+        <div class="notification-content">
+            <div class="notification-title">${title}</div>
+            <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    container.appendChild(notification);
+    
+    // Auto-remove después de 4 segundos
+    setTimeout(() => {
+        notification.classList.add('hiding');
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+
+// ==================== SISTEMA DE CONFIRMACIÓN ====================
+function showConfirm(title, message, onConfirm, onCancel) {
+    const modal = document.createElement('div');
+    modal.className = 'confirm-modal-overlay';
+    modal.innerHTML = `
+        <div class="confirm-modal">
+            <div class="confirm-header">
+                <span class="confirm-icon">⚠️</span>
+                <h3>${title}</h3>
+            </div>
+            <div class="confirm-body">
+                <p>${message}</p>
+            </div>
+            <div class="confirm-footer">
+                <button class="btn-cancel" id="confirmCancel">Cancelar</button>
+                <button class="btn-confirm" id="confirmOk">Eliminar</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Agregar event listeners
+    document.getElementById('confirmOk').addEventListener('click', () => {
+        modal.remove();
+        if (onConfirm) onConfirm();
+    });
+    
+    document.getElementById('confirmCancel').addEventListener('click', () => {
+        modal.remove();
+        if (onCancel) onCancel();
+    });
+    
+    // Cerrar al hacer click fuera del modal
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+            if (onCancel) onCancel();
+        }
+    });
+}
+
+// Función para deshabilitar/habilitar botón con loading
+function setButtonLoading(button, loading) {
+    if (loading) {
+        button.disabled = true;
+        button.classList.add('loading');
+        button.dataset.originalText = button.textContent;
+        button.textContent = 'Guardando...';
+    } else {
+        button.disabled = false;
+        button.classList.remove('loading');
+        button.textContent = button.dataset.originalText || button.textContent;
+    }
+}
+
+// ==================== FUNCIÓN DE REFRESH MANUAL ====================
+function refreshData() {
+    const refreshButton = document.getElementById('refreshButton');
+    const loadingOverlay = document.getElementById('historialLoading');
+    const lastUpdateText = document.getElementById('lastUpdate');
+    
+    // Deshabilitar botón y mostrar loading
+    refreshButton.disabled = true;
+    refreshButton.classList.add('loading');
+    refreshButton.querySelector('.refresh-text').textContent = 'Sincronizando...';
+    loadingOverlay.classList.remove('hidden');
+    
+    // Recargar datos de Firebase
+    reloadDataFromFirebase()
+        .then(() => {
+            // Actualizar timestamp
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = now.toLocaleDateString('es-ES');
+            lastUpdateText.textContent = `Última actualización: ${timeStr} ${dateStr}`;
+            
+            // Ocultar loading y habilitar botón
+            loadingOverlay.classList.add('hidden');
+            refreshButton.disabled = false;
+            refreshButton.classList.remove('loading');
+            refreshButton.querySelector('.refresh-text').textContent = 'Actualizar datos';
+            
+            showNotification('Datos actualizados', 'Los datos se han sincronizado correctamente', 'success');
+        })
+        .catch((error) => {
+            console.error('Error al refrescar datos:', error);
+            
+            // Ocultar loading y habilitar botón
+            loadingOverlay.classList.add('hidden');
+            refreshButton.disabled = false;
+            refreshButton.classList.remove('loading');
+            refreshButton.querySelector('.refresh-text').textContent = 'Actualizar datos';
+            
+            showNotification('Error al actualizar', 'No se pudieron sincronizar los datos. Intenta nuevamente.', 'error');
+        });
+}
+
 // Cargar datos al iniciar
 window.onload = function() {
     // Inicializar Firebase primero
@@ -69,6 +198,10 @@ function showHistorial(tipo) {
 async function addGasto(event) {
     event.preventDefault();
     
+    // Obtener el botón de submit
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitButton, true);
+    
     const gasto = {
         fecha: document.getElementById('gastoFecha').value,
         descripcion: document.getElementById('gastoDescripcion').value,
@@ -83,22 +216,38 @@ async function addGasto(event) {
         const id = await saveGastoToFirebase(gasto);
         gasto.id = id;
         
-        // Agregar a array local
+        // Agregar SOLO a array local (no recargar de Firebase)
         data.gastos.push(gasto);
         
         // Limpiar formulario
         event.target.reset();
         document.getElementById('gastoFecha').valueAsDate = new Date();
         
-        // Actualizar UI
+        // Actualizar UI (sin recargar desde Firebase)
         renderGastos();
         renderResumen();
+        
+        // Mostrar notificación de éxito
+        showNotification(
+            'Gasto registrado',
+            `${gasto.descripcion} - ${gasto.moneda} $${gasto.cantidad.toFixed(2)}`,
+            'success'
+        );
         
         console.log('✅ Gasto agregado');
     } catch (error) {
         console.error('Error al agregar gasto:', error);
-        alert('Error al guardar el gasto. Intenta nuevamente.');
+        showNotification(
+            'Error al guardar',
+            'No se pudo guardar el gasto. Intenta nuevamente.',
+            'error'
+        );
+    } finally {
+        setButtonLoading(submitButton, false);
     }
+    
+    // Importante: prevenir doble envío
+    return false;
 }
 
 function renderGastos() {
@@ -137,29 +286,36 @@ function filterGastos() {
 }
 
 async function deleteGasto(id) {
-    if (!confirm('¿Estás seguro de eliminar este gasto?')) return;
-    
-    try {
-        // Eliminar de Firebase
-        await deleteFromFirebase('gastos', id);
-        
-        // Eliminar del array local
-        data.gastos = data.gastos.filter(g => g.id !== id);
-        
-        // Actualizar UI
-        renderGastos();
-        renderResumen();
-        
-        console.log('✅ Gasto eliminado');
-    } catch (error) {
-        console.error('Error al eliminar gasto:', error);
-        alert('Error al eliminar el gasto. Intenta nuevamente.');
-    }
+    showConfirm(
+        'Confirmar eliminación',
+        '¿Estás seguro de que deseas eliminar este gasto? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                // Eliminar de Firebase
+                await deleteFromFirebase('gastos', id);
+                
+                // Eliminar del array local
+                data.gastos = data.gastos.filter(g => g.id !== id);
+                
+                // Actualizar UI
+                renderGastos();
+                renderResumen();
+                
+                showNotification('Gasto eliminado', 'El gasto se ha eliminado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al eliminar gasto:', error);
+                showNotification('Error al eliminar', 'No se pudo eliminar el gasto. Intenta nuevamente.', 'error');
+            }
+        }
+    );
 }
 
 // ==================== PAGOS ====================
 async function addPago(event) {
     event.preventDefault();
+    
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitButton, true);
     
     const pago = {
         semana: document.getElementById('pagoSemana').value,
@@ -184,11 +340,26 @@ async function addPago(event) {
         renderPagos();
         renderResumen();
         
+        // Mostrar notificación de éxito
+        showNotification(
+            'Pago registrado',
+            `${pago.trabajador} - ARS $${pago.cantidad.toFixed(2)}`,
+            'success'
+        );
+        
         console.log('✅ Pago agregado');
     } catch (error) {
         console.error('Error al agregar pago:', error);
-        alert('Error al guardar el pago. Intenta nuevamente.');
+        showNotification(
+            'Error al guardar',
+            'No se pudo guardar el pago. Intenta nuevamente.',
+            'error'
+        );
+    } finally {
+        setButtonLoading(submitButton, false);
     }
+    
+    return false;
 }
 
 function renderPagos() {
@@ -218,29 +389,36 @@ function renderPagos() {
 }
 
 async function deletePago(id) {
-    if (!confirm('¿Estás seguro de eliminar este pago?')) return;
-    
-    try {
-        // Eliminar de Firebase
-        await deleteFromFirebase('pagos', id);
-        
-        // Eliminar del array local
-        data.pagos = data.pagos.filter(p => p.id !== id);
-        
-        // Actualizar UI
-        renderPagos();
-        renderResumen();
-        
-        console.log('✅ Pago eliminado');
-    } catch (error) {
-        console.error('Error al eliminar pago:', error);
-        alert('Error al eliminar el pago. Intenta nuevamente.');
-    }
+    showConfirm(
+        'Confirmar eliminación',
+        '¿Estás seguro de que deseas eliminar este pago? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                // Eliminar de Firebase
+                await deleteFromFirebase('pagos', id);
+                
+                // Eliminar del array local
+                data.pagos = data.pagos.filter(p => p.id !== id);
+                
+                // Actualizar UI
+                renderPagos();
+                renderResumen();
+                
+                showNotification('Pago eliminado', 'El pago se ha eliminado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al eliminar pago:', error);
+                showNotification('Error al eliminar', 'No se pudo eliminar el pago. Intenta nuevamente.', 'error');
+            }
+        }
+    );
 }
 
 // ==================== CAMBIOS ====================
 async function addCambio(event) {
     event.preventDefault();
+    
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitButton, true);
     
     const cambio = {
         fecha: document.getElementById('cambioFecha').value,
@@ -266,11 +444,26 @@ async function addCambio(event) {
         renderCambios();
         renderResumen();
         
+        // Mostrar notificación de éxito
+        showNotification(
+            'Cambio registrado',
+            `USD $${cambio.dolares.toFixed(2)} → ARS $${cambio.pesos.toFixed(2)}`,
+            'success'
+        );
+        
         console.log('✅ Cambio agregado');
     } catch (error) {
         console.error('Error al agregar cambio:', error);
-        alert('Error al guardar el cambio. Intenta nuevamente.');
+        showNotification(
+            'Error al guardar',
+            'No se pudo guardar el cambio. Intenta nuevamente.',
+            'error'
+        );
+    } finally {
+        setButtonLoading(submitButton, false);
     }
+    
+    return false;
 }
 
 function renderCambios() {
@@ -302,29 +495,36 @@ function renderCambios() {
 }
 
 async function deleteCambio(id) {
-    if (!confirm('¿Estás seguro de eliminar este cambio?')) return;
-    
-    try {
-        // Eliminar de Firebase
-        await deleteFromFirebase('cambios', id);
-        
-        // Eliminar del array local
-        data.cambios = data.cambios.filter(c => c.id !== id);
-        
-        // Actualizar UI
-        renderCambios();
-        renderResumen();
-        
-        console.log('✅ Cambio eliminado');
-    } catch (error) {
-        console.error('Error al eliminar cambio:', error);
-        alert('Error al eliminar el cambio. Intenta nuevamente.');
-    }
+    showConfirm(
+        'Confirmar eliminación',
+        '¿Estás seguro de que deseas eliminar este cambio de moneda? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                // Eliminar de Firebase
+                await deleteFromFirebase('cambios', id);
+                
+                // Eliminar del array local
+                data.cambios = data.cambios.filter(c => c.id !== id);
+                
+                // Actualizar UI
+                renderCambios();
+                renderResumen();
+                
+                showNotification('Cambio eliminado', 'El cambio de moneda se ha eliminado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al eliminar cambio:', error);
+                showNotification('Error al eliminar', 'No se pudo eliminar el cambio. Intenta nuevamente.', 'error');
+            }
+        }
+    );
 }
 
 // ==================== AVANCES ====================
 async function addAvance(event) {
     event.preventDefault();
+    
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitButton, true);
     
     const avance = {
         fecha: document.getElementById('avanceFecha').value,
@@ -347,11 +547,26 @@ async function addAvance(event) {
         // Actualizar UI
         renderAvances();
         
+        // Mostrar notificación de éxito
+        showNotification(
+            'Avance registrado',
+            `${avance.descripcion} - ${avance.porcentaje}% completado`,
+            'success'
+        );
+        
         console.log('✅ Avance agregado');
     } catch (error) {
         console.error('Error al agregar avance:', error);
-        alert('Error al guardar el avance. Intenta nuevamente.');
+        showNotification(
+            'Error al guardar',
+            'No se pudo guardar el avance. Intenta nuevamente.',
+            'error'
+        );
+    } finally {
+        setButtonLoading(submitButton, false);
     }
+    
+    return false;
 }
 
 function renderAvances() {
@@ -381,23 +596,27 @@ function renderAvances() {
 }
 
 async function deleteAvance(id) {
-    if (!confirm('¿Estás seguro de eliminar este avance?')) return;
-    
-    try {
-        // Eliminar de Firebase
-        await deleteFromFirebase('avances', id);
-        
-        // Eliminar del array local
-        data.avances = data.avances.filter(a => a.id !== id);
-        
-        // Actualizar UI
-        renderAvances();
-        
-        console.log('✅ Avance eliminado');
-    } catch (error) {
-        console.error('Error al eliminar avance:', error);
-        alert('Error al eliminar el avance. Intenta nuevamente.');
-    }
+    showConfirm(
+        'Confirmar eliminación',
+        '¿Estás seguro de que deseas eliminar este avance? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                // Eliminar de Firebase
+                await deleteFromFirebase('avances', id);
+                
+                // Eliminar del array local
+                data.avances = data.avances.filter(a => a.id !== id);
+                
+                // Actualizar UI
+                renderAvances();
+                
+                showNotification('Avance eliminado', 'El avance se ha eliminado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al eliminar avance:', error);
+                showNotification('Error al eliminar', 'No se pudo eliminar el avance. Intenta nuevamente.', 'error');
+            }
+        }
+    );
 }
 
 // ==================== RESUMEN ====================
@@ -418,6 +637,7 @@ function renderResumen() {
     
     const totalPagos = data.pagos.reduce((sum, p) => sum + p.cantidad, 0);
     
+    const totalDolaresComprados = data.cambios.reduce((sum, c) => sum + c.dolares, 0);
     const totalCambios = data.cambios.reduce((sum, c) => sum + c.pesos, 0);
     
     // Calcular promedio de tasa de cambio
@@ -425,30 +645,34 @@ function renderResumen() {
         ? data.cambios.reduce((sum, c) => sum + c.tasa, 0) / data.cambios.length
         : 1000;
     
-    const totalGeneral = totalGastosARS + (totalGastosUSD * tasaPromedio) + totalPagos;
+    const totalGeneral = totalGastosARS + totalPagos;
     
     // Renderizar resumen general
     general.innerHTML = `
         <div class="summary-grid">
             <div class="summary-card">
-                <div class="summary-icon">💰</div>
-                <div class="summary-label">Gastos en ARS</div>
-                <div class="summary-value">$${totalGastosARS.toFixed(2)}</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon">💵</div>
-                <div class="summary-label">Gastos en USD</div>
-                <div class="summary-value">$${totalGastosUSD.toFixed(2)}</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon">👷</div>
-                <div class="summary-label">Total Pagos</div>
-                <div class="summary-value">$${totalPagos.toFixed(2)}</div>
+                <div class="summary-value">
+                    <span><strong>💵 Total Gastos en Pesos: </strong></span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalGastosARS.toFixed(2)} ARS</span>
+                </div>
+                <div class="summary-value">
+                    <span><strong>💵 Total Gastos en Dólares:</strong></span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalGastosUSD.toFixed(2)} USD</span>
+                </div>
+                <div class="summary-value">
+                    <span><strong>👷 Total Pagos a Trabajadores:</strong></span>
+                    <span style="font-size:  1.3em; color:#1e3c72; font-weight: bold;">$${totalPagos.toFixed(2)} ARS</span>
+                </div>
+                <div class="summary-value">
+                    <span><strong>💱 Dólares Cambiados:</strong></span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalDolaresComprados.toFixed(2)} USD → $${totalCambios.toFixed(2)} ARS</span>
+                </div>
             </div>
             <div class="summary-card highlight">
-                <div class="summary-icon">📊</div>
-                <div class="summary-label">Total General (ARS)</div>
-                <div class="summary-value">$${totalGeneral.toFixed(2)}</div>
+                <div class="summary-value">
+                    <span><strong>📊 Total General (ARS)</strong></span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalGeneral.toFixed(2)}</span>
+                </div>
             </div>
         </div>
     `;
@@ -471,8 +695,8 @@ function renderResumen() {
                 return `
                     <div class="categoria-item">
                         <div class="categoria-header">
-                            <span class="categoria-nombre">${categoria}</span>
-                            <span class="categoria-monto">$${total.toFixed(2)} (${porcentaje}%)</span>
+                            <span class="categoria-nombre"><strong>${categoria}</strong></span>
+                            <span class="categoria-monto" style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${total.toFixed(2)} (${porcentaje}%)</span>
                         </div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${porcentaje}%"></div>
