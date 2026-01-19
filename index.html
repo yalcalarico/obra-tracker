@@ -9,129 +9,243 @@
 <body>
     <div class="container">
         <header>
-            <h1>🏗️ Control de Obras</h1>
+            <div class="header-content">
+                <h1>🏗️ Control de Obras</h1>
+                <p class="subtitle">Gestión completa de tu proyecto</p>
+            </div>
             <div class="header-actions">
-                <button onclick="exportData()" class="btn-secondary">📤 Exportar</button>
-                <label class="btn-secondary">
+                <button onclick="exportData()" class="btn-export">📤 Exportar</button>
+                <label class="btn-import">
                     📥 Importar
                     <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display: none">
                 </label>
             </div>
         </header>
 
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('gastos')">💰 Gastos</button>
-            <button class="tab" onclick="showTab('pagos')">👷 Pagos Semanales</button>
-            <button class="tab" onclick="showTab('cambio')">💵 Cambio de Moneda</button>
-            <button class="tab" onclick="showTab('avance')">📊 Avance</button>
-            <button class="tab" onclick="showTab('resumen')">📈 Resumen</button>
-        </div>
+        <nav class="tabs">
+            <button class="tab active" onclick="showTab('nuevo-gasto')" data-icon="💰">
+                <span class="tab-icon">💰</span>
+                <span class="tab-text">Nuevo Gasto</span>
+            </button>
+            <button class="tab" onclick="showTab('nuevo-pago')" data-icon="👷">
+                <span class="tab-icon">👷</span>
+                <span class="tab-text">Nuevo Pago</span>
+            </button>
+            <button class="tab" onclick="showTab('nuevo-cambio')" data-icon="💵">
+                <span class="tab-icon">💵</span>
+                <span class="tab-text">Nuevo Cambio</span>
+            </button>
+            <button class="tab" onclick="showTab('nuevo-avance')" data-icon="📊">
+                <span class="tab-icon">📊</span>
+                <span class="tab-text">Nuevo Avance</span>
+            </button>
+            <button class="tab" onclick="showTab('historial')" data-icon="📋">
+                <span class="tab-icon">📋📈</span>
+                <span class="tab-text">Historial y Resumen</span>
+            </button>
+        </nav>
 
-        <!-- Tab:  Gastos -->
-        <div id="tab-gastos" class="tab-content active">
+        <!-- Tab:  Nuevo Gasto -->
+        <div id="tab-nuevo-gasto" class="tab-content active">
             <div class="card">
-                <h2>Registrar Compra de Materiales</h2>
-                <form onsubmit="addGasto(event)">
-                    <input type="date" id="gastoFecha" required>
-                    <input type="text" id="gastoDescripcion" placeholder="Descripción" required>
-                    <select id="gastoCategoria" required>
-                        <option value="">Selecciona categoría</option>
-                        <option value="Materiales">Materiales</option>
-                        <option value="Herramientas">Herramientas</option>
-                        <option value="Mano de Obra">Mano de Obra</option>
-                        <option value="Electricidad">Electricidad</option>
-                        <option value="Plomería">Plomería</option>
-                        <option value="Pintura">Pintura</option>
-                        <option value="Otros">Otros</option>
-                    </select>
-                    <input type="number" id="gastoCantidad" placeholder="Cantidad en $" step="0.01" required>
-                    <select id="gastoMoneda" required>
-                        <option value="ARS">Pesos (ARS)</option>
-                        <option value="USD">Dólares (USD)</option>
-                    </select>
-                    <button type="submit" class="btn-primary">Agregar Gasto</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <div class="filter-section">
-                    <h3>Filtrar por: </h3>
-                    <select id="filtroCategoria" onchange="filterGastos()">
-                        <option value="">Todas las categorías</option>
-                        <option value="Materiales">Materiales</option>
-                        <option value="Herramientas">Herramientas</option>
-                        <option value="Mano de Obra">Mano de Obra</option>
-                        <option value="Electricidad">Electricidad</option>
-                        <option value="Plomería">Plomería</option>
-                        <option value="Pintura">Pintura</option>
-                        <option value="Otros">Otros</option>
-                    </select>
+                <div class="card-header">
+                    <h2>💰 Registrar Compra de Materiales</h2>
+                    <p class="card-description">Registra tus compras y gastos del proyecto</p>
                 </div>
-                <div id="gastosLista"></div>
-            </div>
-        </div>
-
-        <!-- Tab: Pagos Semanales -->
-        <div id="tab-pagos" class="tab-content">
-            <div class="card">
-                <h2>Registrar Pago Semanal</h2>
-                <form onsubmit="addPago(event)">
-                    <input type="week" id="pagoSemana" required>
-                    <input type="text" id="pagoTrabajador" placeholder="Nombre del trabajador" required>
-                    <input type="number" id="pagoCantidad" placeholder="Cantidad" step="0.01" required>
-                    <textarea id="pagoNotas" placeholder="Notas (opcional)"></textarea>
-                    <button type="submit" class="btn-primary">Registrar Pago</button>
+                <form onsubmit="addGasto(event)" class="modern-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>📅 Fecha</label>
+                            <input type="date" id="gastoFecha" required>
+                        </div>
+                        <div class="form-group">
+                            <label>📦 Categoría</label>
+                            <select id="gastoCategoria" required>
+                                <option value="">Selecciona categoría</option>
+                                <option value="Materiales">Materiales</option>
+                                <option value="Herramientas">Herramientas</option>
+                                <option value="Mano de Obra">Mano de Obra</option>
+                                <option value="Electricidad">Electricidad</option>
+                                <option value="Plomería">Plomería</option>
+                                <option value="Pintura">Pintura</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>📝 Descripción</label>
+                        <input type="text" id="gastoDescripcion" placeholder="Ej: Cemento Portland x 10 bolsas" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>💵 Moneda</label>
+                            <select id="gastoMoneda" required>
+                                <option value="ARS">Pesos (ARS)</option>
+                                <option value="USD">Dólares (USD)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>💰 Cantidad</label>
+                            <input type="number" id="gastoCantidad" placeholder="0. 00" step="0.01" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">✅ Registrar Gasto</button>
                 </form>
             </div>
-            <div class="card">
-                <div id="pagosLista"></div>
-            </div>
         </div>
 
-        <!-- Tab:  Cambio de Moneda -->
-        <div id="tab-cambio" class="tab-content">
+        <!-- Tab:  Nuevo Pago -->
+        <div id="tab-nuevo-pago" class="tab-content">
             <div class="card">
-                <h2>Registrar Cambio de Moneda</h2>
-                <form onsubmit="addCambio(event)">
-                    <input type="date" id="cambioFecha" required>
-                    <input type="number" id="cambioDolares" placeholder="Dólares (USD)" step="0.01" required>
-                    <input type="number" id="cambioTasa" placeholder="Tasa de cambio" step="0.01" required>
-                    <input type="number" id="cambioPesos" placeholder="Pesos obtenidos (ARS)" step="0.01" required>
-                    <button type="submit" class="btn-primary">Registrar Cambio</button>
+                <div class="card-header">
+                    <h2>👷 Registrar Pago Semanal</h2>
+                    <p class="card-description">Registra los pagos a trabajadores</p>
+                </div>
+                <form onsubmit="addPago(event)" class="modern-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>📅 Semana</label>
+                            <input type="week" id="pagoSemana" required>
+                        </div>
+                        <div class="form-group">
+                            <label>👤 Trabajador</label>
+                            <input type="text" id="pagoTrabajador" placeholder="Nombre del trabajador" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>💰 Cantidad (ARS)</label>
+                        <input type="number" id="pagoCantidad" placeholder="0.00" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>📝 Notas (opcional)</label>
+                        <textarea id="pagoNotas" placeholder="Agrega notas adicionales sobre este pago... "></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">✅ Registrar Pago</button>
                 </form>
             </div>
-            <div class="card">
-                <div id="cambiosLista"></div>
-            </div>
         </div>
 
-        <!-- Tab: Avance -->
-        <div id="tab-avance" class="tab-content">
+        <!-- Tab:  Nuevo Cambio -->
+        <div id="tab-nuevo-cambio" class="tab-content">
             <div class="card">
-                <h2>Registrar Avance Semanal</h2>
-                <form onsubmit="addAvance(event)">
-                    <input type="week" id="avanceSemana" required>
-                    <input type="text" id="avanceTitulo" placeholder="Título del avance" required>
-                    <textarea id="avanceDescripcion" placeholder="Descripción detallada" required></textarea>
-                    <input type="range" id="avancePorcentaje" min="0" max="100" value="0" oninput="updatePorcentaje(this.value)">
-                    <span id="porcentajeValue">0%</span>
-                    <button type="submit" class="btn-primary">Registrar Avance</button>
+                <div class="card-header">
+                    <h2>💵 Registrar Cambio de Moneda</h2>
+                    <p class="card-description">Registra cuando cambies dólares a pesos</p>
+                </div>
+                <form onsubmit="addCambio(event)" class="modern-form">
+                    <div class="form-group">
+                        <label>📅 Fecha</label>
+                        <input type="date" id="cambioFecha" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>💵 Dólares (USD)</label>
+                            <input type="number" id="cambioDolares" placeholder="0.00" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>📊 Tasa de Cambio</label>
+                            <input type="number" id="cambioTasa" placeholder="0.00" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>💰 Pesos Obtenidos (ARS)</label>
+                        <input type="number" id="cambioPesos" placeholder="0.00" step="0.01" required>
+                    </div>
+                    <button type="submit" class="btn-primary">✅ Registrar Cambio</button>
                 </form>
             </div>
+        </div>
+
+        <!-- Tab: Nuevo Avance -->
+        <div id="tab-nuevo-avance" class="tab-content">
             <div class="card">
-                <div id="avancesLista"></div>
+                <div class="card-header">
+                    <h2>📊 Registrar Avance Semanal</h2>
+                    <p class="card-description">Documenta el progreso de la obra</p>
+                </div>
+                <form onsubmit="addAvance(event)" class="modern-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>📅 Semana</label>
+                            <input type="week" id="avanceSemana" required>
+                        </div>
+                        <div class="form-group">
+                            <label>📌 Título</label>
+                            <input type="text" id="avanceTitulo" placeholder="Ej: Construcción de paredes" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>📝 Descripción Detallada</label>
+                        <textarea id="avanceDescripcion" placeholder="Describe el trabajo realizado durante esta semana..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>📈 Porcentaje de Avance:  <span id="porcentajeValue" class="percentage-value">0%</span></label>
+                        <input type="range" id="avancePorcentaje" min="0" max="100" value="0" oninput="updatePorcentaje(this.value)" class="range-slider">
+                    </div>
+                    <button type="submit" class="btn-primary">✅ Registrar Avance</button>
+                </form>
             </div>
         </div>
 
-        <!-- Tab: Resumen -->
-        <div id="tab-resumen" class="tab-content">
+        <!-- Tab: Historial y Resumen -->
+        <div id="tab-historial" class="tab-content">
+            <!-- Sección de Resumen -->
             <div class="card">
-                <h2>Resumen General</h2>
+                <div class="card-header">
+                    <h2>� Resumen General</h2>
+                    <p class="card-description">Análisis completo de tu proyecto</p>
+                </div>
                 <div id="resumenGeneral"></div>
             </div>
             <div class="card">
-                <h3>Gastos por Categoría</h3>
+                <div class="card-header">
+                    <h3>📊 Gastos por Categoría</h3>
+                </div>
                 <div id="resumenCategorias"></div>
+            </div>
+
+            <!-- Sección de Historial -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>�📋 Historial Completo</h2>
+                    <p class="card-description">Revisa todos tus registros</p>
+                </div>
+                
+                <div class="historial-tabs">
+                    <button class="historial-tab active" onclick="showHistorial('gastos')">💰 Gastos</button>
+                    <button class="historial-tab" onclick="showHistorial('pagos')">👷 Pagos</button>
+                    <button class="historial-tab" onclick="showHistorial('cambios')">💵 Cambios</button>
+                    <button class="historial-tab" onclick="showHistorial('avances')">📊 Avances</button>
+                </div>
+
+                <div id="historial-gastos" class="historial-content active">
+                    <div class="filter-section">
+                        <label>🔍 Filtrar por categoría: </label>
+                        <select id="filtroCategoria" onchange="filterGastos()">
+                            <option value="">Todas las categorías</option>
+                            <option value="Materiales">Materiales</option>
+                            <option value="Herramientas">Herramientas</option>
+                            <option value="Mano de Obra">Mano de Obra</option>
+                            <option value="Electricidad">Electricidad</option>
+                            <option value="Plomería">Plomería</option>
+                            <option value="Pintura">Pintura</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                    <div id="gastosLista"></div>
+                </div>
+
+                <div id="historial-pagos" class="historial-content">
+                    <div id="pagosLista"></div>
+                </div>
+
+                <div id="historial-cambios" class="historial-content">
+                    <div id="cambiosLista"></div>
+                </div>
+
+                <div id="historial-avances" class="historial-content">
+                    <div id="avancesLista"></div>
+                </div>
             </div>
         </div>
     </div>

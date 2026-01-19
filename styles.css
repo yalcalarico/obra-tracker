@@ -73,7 +73,7 @@ header {
     border-bottom: 3px solid #e0e0e0;
 }
 
-tab {
+.tab {
     flex: 1;
     min-width: 120px;
     padding: 15px 20px;
@@ -90,36 +90,36 @@ tab {
     box-shadow: 0 2px 5px rgba(0,0,0,0.08);
 }
 
-tab-icon {
+.tab-icon {
     font-size: 24px;
 }
 
-tab-text {
+.tab-text {
     font-weight: 600;
     color: #666;
 }
 
-tab:hover {
+.tab:hover {
     transform: translateY(-3px);
     box-shadow: 0 4px 12px rgba(30, 60, 114, 0.2);
 }
 
-tab.active {
+.tab.active {
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
     box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4);
 }
 
-tab.active .tab-text {
+.tab.active .tab-text {
     color: white;
 }
 
-tab-content {
+.tab-content {
     display: none;
     padding: 30px;
     animation: fadeIn 0.3s ease-in;
 }
 
-tab-content.active {
+.tab-content.active {
     display: block;
 }
 
