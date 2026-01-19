@@ -6,8 +6,19 @@ let data = {
     gastos: [],
     pagos: [],
     cambios: [],
-    avances: []
+    avances: [],
+    presupuesto: {
+        baño: [],
+        cocina: [],
+        dormitorio: [],
+        living: [],
+        exterior: [],
+        otros: []
+    }
 };
+
+// Variable para el área actual del presupuesto
+let currentBudgetArea = 'baño';
 
 // Variables para modo edición
 let editMode = {
@@ -796,3 +807,334 @@ function formatDate(dateString) {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('es-ES', options);
 }
+
+// ==================== PRESUPUESTO ====================
+function showBudgetArea(area) {
+    currentBudgetArea = area;
+    
+    // Actualizar tabs activos
+    document.querySelectorAll('.budget-area-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Actualizar nombre del área
+    const areaNames = {
+        'baño': 'Baño',
+        'cocina': 'Cocina',
+        'dormitorio': 'Dormitorio',
+        'living': 'Living',
+        'exterior': 'Exterior',
+        'otros': 'Otros'
+    };
+    document.getElementById('currentAreaName').textContent = areaNames[area];
+    
+    // Renderizar items del área
+    renderBudgetItems();
+    renderBudgetSummary();
+}
+
+async function addBudgetItem(event) {
+    event.preventDefault();
+    
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    setButtonLoading(submitButton, true);
+    
+    // Obtener imagen si existe
+    const imageFile = document.getElementById('budgetItemImage').files[0];
+    let imageUrl = null;
+    
+    if (imageFile) {
+        imageUrl = await convertImageToBase64(imageFile);
+    }
+    
+    const item = {
+        id: Date.now().toString(),
+        area: currentBudgetArea,
+        nombre: document.getElementById('budgetItemName').value,
+        descripcion: document.getElementById('budgetItemDescription').value,
+        valorEstimado: parseFloat(document.getElementById('budgetItemEstimated').value),
+        valorReal: null,
+        comprado: false,
+        imagen: imageUrl,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    try {
+        // Guardar en Firebase
+        const id = await saveBudgetItemToFirebase(item);
+        item.id = id;
+        
+        // Agregar al array local
+        if (!data.presupuesto[currentBudgetArea]) {
+            data.presupuesto[currentBudgetArea] = [];
+        }
+        data.presupuesto[currentBudgetArea].push(item);
+        
+        // Limpiar formulario
+        event.target.reset();
+        document.getElementById('imagePreview').classList.add('hidden');
+        document.getElementById('imagePreview').innerHTML = '';
+        
+        // Actualizar UI
+        renderBudgetItems();
+        renderBudgetSummary();
+        
+        showNotification(
+            'Item agregado',
+            `${item.nombre} agregado al presupuesto de ${currentBudgetArea}`,
+            'success'
+        );
+    } catch (error) {
+        console.error('Error al agregar item:', error);
+        showNotification(
+            'Error al guardar',
+            'No se pudo agregar el item. Intenta nuevamente.',
+            'error'
+        );
+    } finally {
+        setButtonLoading(submitButton, false);
+    }
+    
+    return false;
+}
+
+function convertImageToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Preview de imagen antes de subir
+document.addEventListener('DOMContentLoaded', () => {
+    const imageInput = document.getElementById('budgetItemImage');
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.innerHTML = `
+                        <img src="${event.target.result}" alt="Preview">
+                        <button class="image-preview-remove" onclick="removeImagePreview()" type="button">×</button>
+                    `;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+
+function removeImagePreview() {
+    document.getElementById('budgetItemImage').value = '';
+    document.getElementById('imagePreview').classList.add('hidden');
+    document.getElementById('imagePreview').innerHTML = '';
+}
+
+function renderBudgetItems() {
+    const lista = document.getElementById('budgetItemsList');
+    const items = data.presupuesto[currentBudgetArea] || [];
+    
+    if (items.length === 0) {
+        lista.innerHTML = `
+            <div class="budget-empty">
+                <div class="budget-empty-icon">📋</div>
+                <h3>No hay items en esta área</h3>
+                <p>Comienza agregando items a tu presupuesto</p>
+            </div>
+        `;
+        return;
+    }
+    
+    lista.innerHTML = items.map(item => {
+        const diferencia = item.valorReal ? item.valorReal - item.valorEstimado : 0;
+        const diferenciaClass = diferencia > 0 ? 'negative' : diferencia < 0 ? 'positive' : '';
+        const diferenciaText = diferencia > 0 ? `+$${Math.abs(diferencia).toFixed(2)}` : 
+                               diferencia < 0 ? `-$${Math.abs(diferencia).toFixed(2)}` : '$0.00';
+        
+        return `
+            <div class="budget-item ${item.comprado ? 'comprado' : ''}">
+                <div class="budget-item-header">
+                    <div class="budget-item-title">
+                        <h4>${item.nombre}</h4>
+                        ${item.descripcion ? `<p class="budget-item-description">${item.descripcion}</p>` : ''}
+                    </div>
+                    ${item.imagen ? `<img src="${item.imagen}" class="budget-item-image" onclick="openImageModal('${item.imagen}')" alt="${item.nombre}">` : ''}
+                </div>
+                <div class="budget-item-body">
+                    <div class="budget-item-price">
+                        <span class="price-label">💵 Valor Estimado</span>
+                        <span class="price-value">$${item.valorEstimado.toFixed(2)}</span>
+                    </div>
+                    ${item.comprado ? `
+                        <div class="budget-item-price">
+                            <span class="price-label">💰 Valor Real</span>
+                            <span class="price-value real">$${item.valorReal ? item.valorReal.toFixed(2) : '0.00'}</span>
+                        </div>
+                        <div class="budget-item-price">
+                            <span class="price-label">📊 Diferencia</span>
+                            <span class="price-difference ${diferenciaClass}">${diferenciaText}</span>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="budget-item-footer">
+                    <div class="budget-item-checkbox">
+                        <input type="checkbox" id="check-${item.id}" 
+                               ${item.comprado ? 'checked' : ''} 
+                               onchange="toggleBudgetItemComprado('${item.id}')">
+                        <label for="check-${item.id}">Comprado</label>
+                    </div>
+                    ${item.comprado ? `
+                        <input type="number" 
+                               class="real-price-input" 
+                               placeholder="Valor real"
+                               value="${item.valorReal || ''}"
+                               onchange="updateRealPrice('${item.id}', this.value)"
+                               step="0.01">
+                    ` : ''}
+                    <div class="budget-item-actions">
+                        <button class="btn-delete-budget" onclick="deleteBudgetItem('${item.id}')">
+                            🗑️ Eliminar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function toggleBudgetItemComprado(id) {
+    const area = currentBudgetArea;
+    const itemIndex = data.presupuesto[area].findIndex(item => item.id === id);
+    
+    if (itemIndex !== -1) {
+        data.presupuesto[area][itemIndex].comprado = !data.presupuesto[area][itemIndex].comprado;
+        
+        // Si se desmarca como comprado, limpiar valor real
+        if (!data.presupuesto[area][itemIndex].comprado) {
+            data.presupuesto[area][itemIndex].valorReal = null;
+        }
+        
+        try {
+            // Actualizar en Firebase
+            await updateBudgetItemInFirebase(data.presupuesto[area][itemIndex]);
+            
+            // Actualizar UI
+            renderBudgetItems();
+            renderBudgetSummary();
+            
+            showNotification(
+                'Item actualizado',
+                data.presupuesto[area][itemIndex].comprado ? 'Marcado como comprado' : 'Desmarcado como comprado',
+                'info'
+            );
+        } catch (error) {
+            console.error('Error al actualizar item:', error);
+            showNotification('Error', 'No se pudo actualizar el item', 'error');
+        }
+    }
+}
+
+async function updateRealPrice(id, value) {
+    const area = currentBudgetArea;
+    const itemIndex = data.presupuesto[area].findIndex(item => item.id === id);
+    
+    if (itemIndex !== -1) {
+        data.presupuesto[area][itemIndex].valorReal = parseFloat(value) || 0;
+        
+        try {
+            // Actualizar en Firebase
+            await updateBudgetItemInFirebase(data.presupuesto[area][itemIndex]);
+            
+            // Actualizar UI
+            renderBudgetItems();
+            renderBudgetSummary();
+            
+            showNotification('Precio actualizado', 'Valor real guardado correctamente', 'success');
+        } catch (error) {
+            console.error('Error al actualizar precio:', error);
+            showNotification('Error', 'No se pudo actualizar el precio', 'error');
+        }
+    }
+}
+
+async function deleteBudgetItem(id) {
+    showConfirm(
+        'Confirmar eliminación',
+        '¿Estás seguro de que deseas eliminar este item del presupuesto?',
+        async () => {
+            try {
+                const area = currentBudgetArea;
+                
+                // Eliminar de Firebase
+                await deleteFromFirebase('presupuesto', id);
+                
+                // Eliminar del array local
+                data.presupuesto[area] = data.presupuesto[area].filter(item => item.id !== id);
+                
+                // Actualizar UI
+                renderBudgetItems();
+                renderBudgetSummary();
+                
+                showNotification('Item eliminado', 'El item se ha eliminado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al eliminar item:', error);
+                showNotification('Error al eliminar', 'No se pudo eliminar el item', 'error');
+            }
+        }
+    );
+}
+
+function renderBudgetSummary() {
+    const items = data.presupuesto[currentBudgetArea] || [];
+    
+    const totalItems = items.length;
+    const compradosItems = items.filter(item => item.comprado).length;
+    const estimadoTotal = items.reduce((sum, item) => sum + item.valorEstimado, 0);
+    const realTotal = items.reduce((sum, item) => sum + (item.valorReal || 0), 0);
+    const diferencia = realTotal - estimadoTotal;
+    
+    document.getElementById('budgetTotalItems').textContent = totalItems;
+    document.getElementById('budgetCompradosItems').textContent = compradosItems;
+    document.getElementById('budgetEstimadoTotal').textContent = `$${estimadoTotal.toFixed(2)}`;
+    document.getElementById('budgetRealTotal').textContent = `$${realTotal.toFixed(2)}`;
+    
+    const diferenciaCard = document.getElementById('budgetDiferencia');
+    const diferenciaValue = document.getElementById('budgetDiferenciaTotal');
+    
+    // Actualizar clase según la diferencia
+    diferenciaCard.classList.remove('positive', 'negative');
+    if (diferencia < 0) {
+        diferenciaCard.classList.add('positive');
+        diferenciaValue.textContent = `-$${Math.abs(diferencia).toFixed(2)}`;
+    } else if (diferencia > 0) {
+        diferenciaCard.classList.add('negative');
+        diferenciaValue.textContent = `+$${diferencia.toFixed(2)}`;
+    } else {
+        diferenciaValue.textContent = '$0.00';
+    }
+}
+
+function openImageModal(imageUrl) {
+    const modal = document.createElement('div');
+    modal.className = 'image-modal-overlay';
+    modal.innerHTML = `
+        <div class="image-modal">
+            <button class="image-modal-close" onclick="this.parentElement.parentElement.remove()">×</button>
+            <img src="${imageUrl}" alt="Imagen ampliada">
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+

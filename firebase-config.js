@@ -55,6 +55,7 @@ async function loadDataFromFirebase() {
         const pagosSnapshot = await db.collection('pagos').get();
         const cambiosSnapshot = await db.collection('cambios').get();
         const avancesSnapshot = await db.collection('avances').get();
+        const presupuestoSnapshot = await db.collection('presupuesto').get();
         
         // Convertir a arrays
         data.gastos = gastosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -62,12 +63,31 @@ async function loadDataFromFirebase() {
         data.cambios = cambiosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         data.avances = avancesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
+        // Organizar presupuesto por áreas
+        const presupuestoItems = presupuestoSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        data.presupuesto = {
+            baño: [],
+            cocina: [],
+            dormitorio: [],
+            living: [],
+            exterior: [],
+            otros: []
+        };
+        
+        presupuestoItems.forEach(item => {
+            if (data.presupuesto[item.area]) {
+                data.presupuesto[item.area].push(item);
+            }
+        });
+        
         // Renderizar todo
         renderGastos();
         renderPagos();
         renderCambios();
         renderAvances();
         renderResumen();
+        renderBudgetItems();
+        renderBudgetSummary();
         
         console.log('✅ Datos cargados desde Firebase');
         
@@ -90,6 +110,7 @@ async function reloadDataFromFirebase() {
         const pagosSnapshot = await db.collection('pagos').get();
         const cambiosSnapshot = await db.collection('cambios').get();
         const avancesSnapshot = await db.collection('avances').get();
+        const presupuestoSnapshot = await db.collection('presupuesto').get();
         
         // Convertir a arrays
         data.gastos = gastosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -97,12 +118,31 @@ async function reloadDataFromFirebase() {
         data.cambios = cambiosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         data.avances = avancesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
+        // Organizar presupuesto por áreas
+        const presupuestoItems = presupuestoSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        data.presupuesto = {
+            baño: [],
+            cocina: [],
+            dormitorio: [],
+            living: [],
+            exterior: [],
+            otros: []
+        };
+        
+        presupuestoItems.forEach(item => {
+            if (data.presupuesto[item.area]) {
+                data.presupuesto[item.area].push(item);
+            }
+        });
+        
         // Renderizar todo
         renderGastos();
         renderPagos();
         renderCambios();
         renderAvances();
         renderResumen();
+        renderBudgetItems();
+        renderBudgetSummary();
         
         console.log('🔄 Datos recargados desde Firebase');
         
@@ -221,3 +261,56 @@ async function migrateLocalStorageToFirebase() {
         alert('Error al migrar datos. Ver consola para detalles.');
     }
 }
+
+// ==================== FUNCIONES DE PRESUPUESTO ====================
+async function saveBudgetItemToFirebase(item) {
+    try {
+        const docRef = await db.collection('presupuesto').add(item);
+        console.log('✅ Item de presupuesto guardado con ID:', docRef.id);
+        return docRef.id;
+    } catch (error) {
+        console.error('❌ Error al guardar item de presupuesto:', error);
+        throw error;
+    }
+}
+
+async function updateBudgetItemInFirebase(item) {
+    try {
+        await db.collection('presupuesto').doc(item.id).update({
+            comprado: item.comprado,
+            valorReal: item.valorReal
+        });
+        console.log('✅ Item de presupuesto actualizado');
+    } catch (error) {
+        console.error('❌ Error al actualizar item de presupuesto:', error);
+        throw error;
+    }
+}
+
+async function loadBudgetFromFirebase() {
+    try {
+        const snapshot = await db.collection('presupuesto').get();
+        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Organizar por áreas
+        data.presupuesto = {
+            baño: [],
+            cocina: [],
+            dormitorio: [],
+            living: [],
+            exterior: [],
+            otros: []
+        };
+        
+        items.forEach(item => {
+            if (data.presupuesto[item.area]) {
+                data.presupuesto[item.area].push(item);
+            }
+        });
+        
+        console.log('✅ Presupuesto cargado desde Firebase');
+    } catch (error) {
+        console.error('❌ Error al cargar presupuesto:', error);
+    }
+}
+
