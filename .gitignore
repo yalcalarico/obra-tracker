@@ -1,0 +1,25 @@
+# Firebase
+# No subir configuración real de Firebase (usar variables de ejemplo)
+# firebase-config.js
+
+# Node modules (si usas npm en el futuro)
+node_modules/
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups locales
+*.json.backup
+backup/
+
+# Firebase cache
+.firebase/
+firebase-debug.log
