@@ -1,12 +1,438 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background:  linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+}
+
+/* Header Mejorado */
+header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    padding: 30px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-content h1 {
+    font-size: 2.2em;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-export, .btn-import {
+    padding: 12px 24px;
+    border: 2px solid white;
+    border-radius: 25px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: transparent;
+    color: white;
+    font-weight: 600;
+}
+
+.btn-export:hover, .btn-import:hover {
+    background: white;
+    color: #1e3c72;
+    transform: translateY(-2px);
+}
+
+/* Tabs Modernos */
+.tabs {
+    display: flex;
+    background: #f8f9fa;
+    padding: 10px 20px;
+    gap: 8px;
+    overflow-x: auto;
+    border-bottom: 3px solid #e0e0e0;
+}
+
+tab {
+    flex: 1;
+    min-width: 120px;
+    padding: 15px 20px;
+    background: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+}
+
+tab-icon {
+    font-size: 24px;
+}
+
+tab-text {
+    font-weight: 600;
+    color: #666;
+}
+
+tab:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(30, 60, 114, 0.2);
+}
+
+tab.active {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4);
+}
+
+tab.active .tab-text {
+    color: white;
+}
+
+tab-content {
+    display: none;
+    padding: 30px;
+    animation: fadeIn 0.3s ease-in;
+}
+
+tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Cards Mejorados */
+.card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+}
+
+.card-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.card-header h2 {
+    color: #1e3c72;
+    font-size: 1.8em;
+    margin-bottom: 8px;
+}
+
+.card-header h3 {
+    color: #2a5298;
+    font-size: 1.4em;
+}
+
+.card-description {
+    color: #666;
+    font-size: 0.95em;
+}
+
+/* Formularios Modernos */
+.modern-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95em;
+}
+
+input, select, textarea {
+    padding: 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #1e3c72;
+    box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.range-slider {
+    height: 8px;
+    border-radius: 5px;
+    background: #e0e0e0;
+    outline: none;
+}
+
+.range-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(30, 60, 114, 0.3);
+}
+
+.percentage-value {
+    display: inline-block;
+    min-width: 50px;
+    padding: 4px 12px;
+    background: #1e3c72;
+    color: white;
+    border-radius: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.btn-primary {
+    padding: 16px 32px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(30, 60, 114, 0.4);
+}
+
 .btn-edit {
-  background: #3498db;
-  color: white;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 14px;
+    background: #3498db;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
 }
 
 .btn-edit:hover {
-  background: #2980b9;
-  transform: scale(1.05);
+    background: #2980b9;
+    transform: scale(1.05);
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+    transform: scale(1.05);
+}
+
+/* Historial Tabs */
+.historial-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.historial-tab {
+    padding: 12px 24px;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+    color: #666;
+}
+
+.historial-tab:hover {
+    border-color: #1e3c72;
+    color: #1e3c72;
+}
+
+.historial-tab.active {
+    background: #1e3c72;
+    border-color: #1e3c72;
+    color: white;
+}
+
+.historial-content {
+    display: none;
+}
+
+.historial-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* Items de Lista */
+.item {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 5px solid #1e3c72;
+    transition: all 0.3s;
+}
+
+.item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateX(5px);
+}
+
+.item-content {
+    flex: 1;
+}
+
+.item-content strong {
+    color: #1e3c72;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.filter-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.filter-section label {
+    font-weight: 600;
+    color: #333;
+    margin-right: 10px;
+}
+
+.resumen-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    transition: all 0.3s;
+}
+
+.resumen-item:hover {
+    background: #e8f4f8;
+    transform: translateX(5px);
+}
+
+.resumen-item strong {
+    color: #1e3c72;
+}
+
+.categoria-bar {
+    background: #e0e0e0;
+    border-radius: 10px;
+    height: 35px;
+    margin: 10px 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.categoria-bar-fill {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    transition: width 0.5s ease;
+}
+
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .tabs {
+        flex-direction: column;
+    }
+    
+    .tab {
+        width: 100%;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .historial-tabs {
+        flex-direction: column;
+    }
 }
