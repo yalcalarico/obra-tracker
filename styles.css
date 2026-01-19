@@ -1326,7 +1326,7 @@ textarea {
 /* Budget Summary Cards */
 .budget-summary-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 16px;
     margin-bottom: 30px;
 }
@@ -1539,9 +1539,6 @@ textarea {
     gap: 10px;
     align-items: center;
     padding: 10px 16px;
-    background: #f8f9fa;
-    border-radius: 10px;
-    border: 2px solid #4caf50;
 }
 
 .real-price-input {
@@ -1587,6 +1584,27 @@ textarea {
 .btn-save-price:active {
     transform: translateY(0);
     box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-save-price:disabled {
+    background: linear-gradient(135deg, #9e9e9e 0%, #bdbdbd 100%);
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-save-price:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.real-price-input:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.7;
+    border-color: #e0e0e0;
+    color: #757575;
 }
 
 .budget-item-actions {

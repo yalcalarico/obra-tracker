@@ -21,6 +21,19 @@ let editMode = {
     id: null
 };
 
+// ==================== FUNCIONES DE FORMATO ====================
+function formatCurrency(value) {
+    if (value === null || value === undefined) return '0.00';
+    const num = parseFloat(value);
+    if (isNaN(num)) return '0.00';
+    
+    // Formatear con separador de miles y dos decimales
+    return num.toLocaleString('es-AR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
 // ==================== SISTEMA DE NOTIFICACIONES ====================
 function showNotification(title, message, type = 'success') {
     const container = document.getElementById('notificationContainer');
@@ -235,7 +248,7 @@ async function addGasto(event) {
         // Mostrar notificación de éxito
         showNotification(
             'Gasto registrado',
-            `${gasto.descripcion} - ${gasto.moneda} $${gasto.cantidad.toFixed(2)}`,
+            `${gasto.descripcion} - ${gasto.moneda} $${formatCurrency(gasto.cantidad)}`,
             'success'
         );
         
@@ -279,7 +292,7 @@ function renderGastos() {
                 </div>
                 <div class="item-description">${gasto.descripcion}</div>
                 <div class="item-footer">
-                    <span class="item-amount">${gasto.moneda} $${gasto.cantidad.toFixed(2)}</span>
+                    <span class="item-amount">${gasto.moneda} $${formatCurrency(gasto.cantidad)}</span>
                     <button onclick="deleteGasto('${gasto.id}')" class="btn-delete">🗑️ Eliminar</button>
                 </div>
             </div>
@@ -348,7 +361,7 @@ async function addPago(event) {
         // Mostrar notificación de éxito
         showNotification(
             'Pago registrado',
-            `${pago.trabajador} - ARS $${pago.cantidad.toFixed(2)}`,
+            `${pago.trabajador} - ARS $${formatCurrency(pago.cantidad)}`,
             'success'
         );
         
@@ -386,7 +399,7 @@ function renderPagos() {
                 </div>
                 ${pago.notas ? `<div class="item-description">${pago.notas}</div>` : ''}
                 <div class="item-footer">
-                    <span class="item-amount">ARS $${pago.cantidad.toFixed(2)}</span>
+                    <span class="item-amount">ARS $${formatCurrency(pago.cantidad)}</span>
                     <button onclick="deletePago('${pago.id}')" class="btn-delete">🗑️ Eliminar</button>
                 </div>
             </div>
@@ -452,7 +465,7 @@ async function addCambio(event) {
         // Mostrar notificación de éxito
         showNotification(
             'Cambio registrado',
-            `USD $${cambio.dolares.toFixed(2)} → ARS $${cambio.pesos.toFixed(2)}`,
+            `USD $${formatCurrency(cambio.dolares)} → ARS $${formatCurrency(cambio.pesos)}`,
             'success'
         );
         
@@ -489,7 +502,7 @@ function renderCambios() {
                     <span class="item-date">${formatDate(cambio.fecha)}</span>
                 </div>
                 <div class="item-description">
-                    USD $${cambio.dolares.toFixed(2)} × ${cambio.tasa.toFixed(2)} = ARS $${cambio.pesos.toFixed(2)}
+                    USD $${formatCurrency(cambio.dolares)} × ${cambio.tasa.toFixed(2)} = ARS $${formatCurrency(cambio.pesos)}
                 </div>
                 <div class="item-footer">
                     <span class="item-amount">Tasa: ${cambio.tasa.toFixed(2)}</span>
@@ -658,25 +671,25 @@ function renderResumen() {
             <div class="summary-card">
                 <div class="summary-value">
                     <span><strong>💵 Total Gastos en Pesos: </strong></span>
-                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalGastosARS.toFixed(2)} ARS</span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${formatCurrency(totalGastosARS)} ARS</span>
                 </div>
                 <div class="summary-value">
                     <span><strong>💵 Total Gastos en Dólares:</strong></span>
-                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalGastosUSD.toFixed(2)} USD</span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${formatCurrency(totalGastosUSD)} USD</span>
                 </div>
                 <div class="summary-value">
                     <span><strong>👷 Total Pagos a Trabajadores:</strong></span>
-                    <span style="font-size:  1.3em; color:#1e3c72; font-weight: bold;">$${totalPagos.toFixed(2)} ARS</span>
+                    <span style="font-size:  1.3em; color:#1e3c72; font-weight: bold;">$${formatCurrency(totalPagos)} ARS</span>
                 </div>
                 <div class="summary-value">
                     <span><strong>💱 Dólares Cambiados:</strong></span>
-                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalDolaresComprados.toFixed(2)} USD → $${totalCambios.toFixed(2)} ARS</span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${formatCurrency(totalDolaresComprados)} USD → $${formatCurrency(totalCambios)} ARS</span>
                 </div>
             </div>
             <div class="summary-card highlight">
                 <div class="summary-value">
                     <span><strong>📊 Total General (ARS)</strong></span>
-                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${totalGeneral.toFixed(2)}</span>
+                    <span style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${formatCurrency(totalGeneral)}</span>
                 </div>
             </div>
         </div>
@@ -701,7 +714,7 @@ function renderResumen() {
                     <div class="categoria-item">
                         <div class="categoria-header">
                             <span class="categoria-nombre"><strong>${categoria}</strong></span>
-                            <span class="categoria-monto" style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${total.toFixed(2)} (${porcentaje}%)</span>
+                            <span class="categoria-monto" style="font-size: 1.3em; color:#1e3c72; font-weight: bold;">$${formatCurrency(total)} (${porcentaje}%)</span>
                         </div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${porcentaje}%"></div>
@@ -1089,8 +1102,8 @@ function renderBudgetItems() {
     lista.innerHTML = items.map(item => {
         const diferencia = item.valorReal ? item.valorReal - item.valorEstimado : 0;
         const diferenciaClass = diferencia > 0 ? 'negative' : diferencia < 0 ? 'positive' : '';
-        const diferenciaText = diferencia > 0 ? `+$${Math.abs(diferencia).toFixed(2)}` : 
-                               diferencia < 0 ? `-$${Math.abs(diferencia).toFixed(2)}` : '$0.00';
+        const diferenciaText = diferencia > 0 ? `+$${formatCurrency(Math.abs(diferencia))}` : 
+                               diferencia < 0 ? `-$${formatCurrency(Math.abs(diferencia))}` : `$${formatCurrency(0)}`;
         
         return `
             <div class="budget-item ${item.comprado ? 'comprado' : ''}">
@@ -1104,12 +1117,12 @@ function renderBudgetItems() {
                 <div class="budget-item-body">
                     <div class="budget-item-price">
                         <span class="price-label">💵 Valor Estimado</span>
-                        <span class="price-value">$${item.valorEstimado.toFixed(2)}</span>
+                        <span class="price-value">$${formatCurrency(item.valorEstimado)}</span>
                     </div>
                     ${item.comprado ? `
                         <div class="budget-item-price">
                             <span class="price-label">💰 Valor Real</span>
-                            <span class="price-value real">$${item.valorReal ? item.valorReal.toFixed(2) : '0.00'}</span>
+                            <span class="price-value real">$${formatCurrency(item.valorReal || 0)}</span>
                         </div>
                         <div class="budget-item-price">
                             <span class="price-label">📊 Diferencia</span>
@@ -1118,25 +1131,33 @@ function renderBudgetItems() {
                     ` : ''}
                 </div>
                 <div class="budget-item-footer">
-                    <div class="budget-item-checkbox">
-                        <input type="checkbox" id="check-${item.id}" 
-                               ${item.comprado ? 'checked' : ''} 
-                               onchange="toggleBudgetItemComprado('${item.id}')">
-                        <label for="check-${item.id}">Comprado</label>
-                    </div>
-                    ${item.comprado ? `
-                        <div class="real-price-section">
-                            <input type="number" 
-                                   id="realPrice-${item.id}"
-                                   class="real-price-input" 
-                                   placeholder="Ingrese valor real"
-                                   value="${item.valorReal || ''}"
-                                   step="0.01">
-                            <button class="btn-save-price" onclick="saveRealPrice('${item.id}')">
-                                💾 Guardar
-                            </button>
+                    <div class="real-price-section">
+                        <div class="budget-item-checkbox">
+                            <input type="checkbox" id="check-${item.id}" 
+                                ${item.comprado ? 'checked' : ''} 
+                                onchange="toggleBudgetItemComprado('${item.id}')"
+                                ${item.valorReal ? 'disabled' : ''}>
+                            <label for="check-${item.id}">Comprado</label>
                         </div>
-                    ` : ''}
+                        ${item.comprado ? `
+                            <input type="number" 
+                                id="realPrice-${item.id}"
+                                class="real-price-input" 
+                                placeholder="Ingrese valor real"
+                                value="${item.valorReal || ''}"
+                                step="0.01"
+                                ${item.valorReal ? 'disabled' : ''}>
+                            ${item.comprado && !item.valorReal ? `
+                                <button class="btn-save-price" 
+                                        id="saveBtn-${item.id}"
+                                        onclick="saveRealPrice('${item.id}')"
+                                        ${item.valorReal ? 'disabled' : ''}>
+                                    💾 ${item.valorReal ? 'Guardado' : 'Guardar'}
+                                </button>
+                            ` : ''}
+                            
+                        ` : ''}
+                    </div>
                     <div class="budget-item-actions">
                         <button class="btn-delete-budget" onclick="deleteBudgetItem('${item.id}')">
                             🗑️ Eliminar
@@ -1281,8 +1302,8 @@ function renderBudgetSummary() {
     
     document.getElementById('budgetTotalItems').textContent = totalItems;
     document.getElementById('budgetCompradosItems').textContent = compradosItems;
-    document.getElementById('budgetEstimadoTotal').textContent = `$${estimadoTotal.toFixed(2)}`;
-    document.getElementById('budgetRealTotal').textContent = `$${realTotal.toFixed(2)}`;
+    document.getElementById('budgetEstimadoTotal').textContent = `$${formatCurrency(estimadoTotal)}`;
+    document.getElementById('budgetRealTotal').textContent = `$${formatCurrency(realTotal)}`;
     
     const diferenciaCard = document.getElementById('budgetDiferencia');
     const diferenciaValue = document.getElementById('budgetDiferenciaTotal');
@@ -1291,12 +1312,12 @@ function renderBudgetSummary() {
     diferenciaCard.classList.remove('positive', 'negative');
     if (diferencia < 0) {
         diferenciaCard.classList.add('positive');
-        diferenciaValue.textContent = `-$${Math.abs(diferencia).toFixed(2)}`;
+        diferenciaValue.textContent = `-$${formatCurrency(Math.abs(diferencia))}`;
     } else if (diferencia > 0) {
         diferenciaCard.classList.add('negative');
-        diferenciaValue.textContent = `+$${diferencia.toFixed(2)}`;
+        diferenciaValue.textContent = `+$${formatCurrency(diferencia)}`;
     } else {
-        diferenciaValue.textContent = '$0.00';
+        diferenciaValue.textContent = `$${formatCurrency(0)}`;
     }
 }
 
