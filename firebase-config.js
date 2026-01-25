@@ -70,7 +70,7 @@ async function loadDataFromFirebase() {
         renderGastos();
         renderPagos();
         renderCambios();
-        renderAvances();
+        renderItemsComprados();
         renderResumen();
         renderBudgetSelector();
         
@@ -110,7 +110,7 @@ async function reloadDataFromFirebase() {
         renderGastos();
         renderPagos();
         renderCambios();
-        renderAvances();
+        renderItemsComprados();
         renderResumen();
         renderBudgetSelector();
         if (currentBudget) {
@@ -163,27 +163,6 @@ async function savePagoToFirebase(pago) {
     }
 }
 
-// Guardar cambio en Firebase
-async function saveCambioToFirebase(cambio) {
-    try {
-        const docRef = await db.collection('cambios').add(cambio);
-        return docRef.id;
-    } catch (error) {
-        console.error('Error al guardar cambio:', error);
-        throw error;
-    }
-}
-
-// Guardar avance en Firebase
-async function saveAvanceToFirebase(avance) {
-    try {
-        const docRef = await db.collection('avances').add(avance);
-        return docRef.id;
-    } catch (error) {
-        console.error('Error al guardar avance:', error);
-        throw error;
-    }
-}
 
 // Eliminar documento de Firebase
 async function deleteFromFirebase(collection, id) {
@@ -205,7 +184,6 @@ async function migrateLocalStorageToFirebase() {
         const localGastos = JSON.parse(localStorage.getItem('gastos')) || [];
         const localPagos = JSON.parse(localStorage.getItem('pagos')) || [];
         const localCambios = JSON.parse(localStorage.getItem('cambios')) || [];
-        const localAvances = JSON.parse(localStorage.getItem('avances')) || [];
         
         // Migrar gastos
         for (const gasto of localGastos) {
@@ -220,11 +198,6 @@ async function migrateLocalStorageToFirebase() {
         // Migrar cambios
         for (const cambio of localCambios) {
             await db.collection('cambios').add(cambio);
-        }
-        
-        // Migrar avances
-        for (const avance of localAvances) {
-            await db.collection('avances').add(avance);
         }
         
         console.log('✅ Migración completada exitosamente');
@@ -266,7 +239,9 @@ async function updatePresupuestoItemInFirebase(item) {
     try {
         await db.collection('presupuestoItems').doc(item.id).update({
             comprado: item.comprado,
-            valorReal: item.valorReal
+            valorReal: item.valorReal,
+            conTarjeta: item.conTarjeta,
+            cuotas: item.cuotas
         });
         console.log('✅ Item de presupuesto actualizado');
     } catch (error) {

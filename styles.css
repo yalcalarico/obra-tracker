@@ -2,6 +2,13 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+html {
+    /* Mejor scroll en móvil */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
 }
 
 body {
@@ -9,6 +16,11 @@ body {
     background:  linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
     min-height: 100vh;
     padding: 20px;
+    /* Prevenir zoom accidental en móvil */
+    touch-action: pan-y;
+    /* Mejor renderizado de fuentes en móvil */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Loading Screen */
@@ -967,6 +979,20 @@ textarea {
     box-shadow: 0 6px 20px rgba(30, 60, 114, 0.4);
 }
 
+.btn-primary.btn-edit-mode {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+}
+
+.btn-primary.btn-edit-mode:hover {
+    background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+    box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
+}
+
+#cancelEditBudgetItemBtn {
+    margin-right: 12px;
+}
+
 .btn-edit {
     background: #3498db;
     color: white;
@@ -1496,6 +1522,96 @@ textarea {
     color: #c62828;
 }
 
+.price-difference.neutral {
+    background: #f5f5f5;
+    color: #757575;
+}
+
+/* Estilos para Items Comprados en Historial */
+.item-comprado-card {
+    border-left: 4px solid #4caf50;
+}
+
+.item-comprado-title h4 {
+    font-size: 1.1em;
+    color: #212529;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+}
+
+.item-comprado-desc {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.item-comprado-image-container {
+    margin: 12px 0;
+    text-align: center;
+}
+
+.item-comprado-image-thumb {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    object-fit: cover;
+}
+
+.item-comprado-image-thumb:hover {
+    transform: scale(1.05);
+    border-color: #4caf50;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.item-comprado-prices {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.price-box {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+}
+
+.price-label {
+    display: block;
+    font-size: 0.75em;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+}
+
+.price-value {
+    display: block;
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #1e3c72;
+}
+
+.badge-tdc {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
 .budget-item-footer {
     display: flex;
     justify-content: space-between;
@@ -1744,6 +1860,175 @@ textarea {
 
 /* ==================== FIN ESTILOS DE PRESUPUESTO ==================== */
 
+/* ==================== DASHBOARD STYLES ==================== */
+#tab-dashboard .dashboard-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+#tab-dashboard .dashboard-header h2 {
+    font-size: 1.8em;
+    margin-bottom: 8px;
+    color: #1a1a2e !important;
+    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+#tab-dashboard .dashboard-subtitle,
+#tab-dashboard .dashboard-header p {
+    font-size: 0.95em;
+    color: #2d3748 !important;
+}
+
+/* Tarjetas de resumen del dashboard */
+.dashboard-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.dashboard-summary-cards .summary-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: default;
+    margin-bottom: 0;
+}
+
+.dashboard-summary-cards .summary-card::before {
+    content: none !important;
+}
+
+.dashboard-summary-cards .summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dashboard-summary-cards .summary-card .card-icon {
+    font-size: 2.2em;
+    opacity: 0.9;
+}
+
+.dashboard-summary-cards .summary-card .card-info {
+    flex: 1;
+}
+
+.dashboard-summary-cards .summary-card h3 {
+    font-size: 0.75em;
+    color: #2d3748 !important;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.dashboard-summary-cards .summary-card .card-value {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #1a1a2e !important;
+    margin-bottom: 3px;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.dashboard-summary-cards .summary-card .card-label {
+    font-size: 0.75em;
+    color: #4a5568 !important;
+}
+
+/* Colores específicos para cada tipo de tarjeta del dashboard */
+.dashboard-summary-cards .summary-card.total-obra {
+    background: linear-gradient(135deg, rgba(255, 235, 235, 0.95), rgba(255, 245, 245, 0.9)) !important;
+    border-color: rgba(255, 107, 107, 0.5) !important;
+    border-left: 4px solid rgba(255, 107, 107, 0.8) !important;
+}
+
+.dashboard-summary-cards .summary-card.gastos {
+    background: linear-gradient(135deg, rgba(230, 245, 255, 0.95), rgba(240, 250, 255, 0.9)) !important;
+    border-color: rgba(54, 162, 235, 0.5) !important;
+    border-left: 4px solid rgba(54, 162, 235, 0.8) !important;
+}
+
+.dashboard-summary-cards .summary-card.presupuestos {
+    background: linear-gradient(135deg, rgba(255, 250, 230, 0.95), rgba(255, 252, 240, 0.9)) !important;
+    border-color: rgba(255, 206, 86, 0.5) !important;
+    border-left: 4px solid rgba(255, 206, 86, 0.8) !important;
+}
+
+.dashboard-summary-cards .summary-card.pagos {
+    background: linear-gradient(135deg, rgba(230, 250, 245, 0.95), rgba(240, 252, 248, 0.9)) !important;
+    border-color: rgba(75, 192, 192, 0.5) !important;
+    border-left: 4px solid rgba(75, 192, 192, 0.8) !important;
+}
+
+/* Contenedor de gráficas */
+.dashboard-charts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.chart-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chart-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.chart-card.full-width {
+    grid-column: 1 / -1;
+}
+
+#tab-dashboard .chart-header {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+#tab-dashboard .chart-header h3 {
+    font-size: 1.1em;
+    color: #1a1a2e !important;
+    margin-bottom: 4px;
+}
+
+#tab-dashboard .chart-header p {
+    font-size: 0.8em;
+    color: #4a5568 !important;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+.chart-container canvas {
+    max-height: 100%;
+}
+
+/* Ajustes para gráfica horizontal */
+.chart-card.full-width .chart-container {
+    height: 400px;
+}
+
+/* ==================== FIN DASHBOARD STYLES ==================== */
+
 /* Summary Cards - Cards del resumen general */
 .summary-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -1829,76 +2114,772 @@ textarea {
     transition: width 0.5s ease;
 }
 
+/* Estilos para Categorías en Resumen */
+.categoria-item {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.categoria-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #2a5298;
+}
+
+.categoria-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.categoria-nombre {
+    font-size: 1.1em;
+    color: #1e3c72;
+    font-weight: 700;
+}
+
+.categoria-monto {
+    font-size: 1.3em;
+    color: #1e3c72;
+    font-weight: bold;
+}
+
+.categoria-detalles {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #4caf50;
+}
+
+.progress-bar {
+    background: #e0e0e0;
+    border-radius: 10px;
+    height: 28px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85em;
+    transition: width 0.5s ease;
+    min-width: 30px;
+}
+
 @media (max-width: 768px) {
+    /* Reducir padding general del body */
+    body {
+        padding: 10px;
+    }
+
+    /* Container principal */
+    .container {
+        border-radius: 12px;
+        max-width: 100%;
+    }
+
+    /* Header más compacto */
     header {
         flex-direction: column;
-        gap: 20px;
+        gap: 15px;
         text-align: center;
+        padding: 20px 16px;
     }
-    
+
+    .header-content h1 {
+        font-size: 1.6em;
+    }
+
+    .subtitle {
+        font-size: 0.85em;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-refresh {
+        width: 100%;
+        padding: 12px;
+        font-size: 0.95em;
+    }
+
+    .last-update-text {
+        font-size: 0.8em;
+    }
+
+    /* Tabs principales como botones grandes táctiles */
     .tabs {
         flex-direction: column;
+        gap: 8px;
+        padding: 16px;
     }
     
     .tab {
         width: 100%;
+        padding: 16px;
+        font-size: 1em;
+        min-height: 60px;
+        justify-content: center;
     }
-    
+
+    .tab-icon {
+        font-size: 28px;
+    }
+
+    .tab-text {
+        font-size: 1.05em;
+    }
+
+    /* Contenido de tabs */
+    .tab-content {
+        padding: 16px;
+    }
+
+    /* Cards */
+    .card {
+        padding: 20px 16px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+    }
+
+    .card-header h2 {
+        font-size: 1.5em;
+    }
+
+    .card-header h3 {
+        font-size: 1.2em;
+    }
+
+    .card-description {
+        font-size: 0.9em;
+    }
+
+    /* Formularios */
     .form-row {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
-    
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        font-size: 0.95em;
+        margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px; /* Evita zoom en iOS */
+        padding: 14px;
+        border-radius: 10px;
+    }
+
+    .btn-primary {
+        width: 100%;
+        padding: 16px;
+        font-size: 1.05em;
+        border-radius: 12px;
+    }
+
+    /* Tabs de historial */
     .historial-tabs {
         flex-direction: column;
+        gap: 8px;
     }
-    
-    /* Asegurar que los botones se vean bien en móvil */
+
+    .historial-tab {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 0.95em;
+        text-align: center;
+    }
+
+    /* Items cards en historial */
+    .item-card {
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+    .item-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .item-category {
+        font-size: 0.8em;
+        padding: 5px 12px;
+    }
+
+    .item-date {
+        font-size: 0.85em;
+    }
+
+    .item-description {
+        font-size: 0.95em;
+        padding: 10px 12px;
+    }
+
     .item-footer {
         flex-direction: column;
         align-items: stretch;
-        gap: 10px;
+        gap: 12px;
     }
     
     .item-amount {
         justify-content: center;
-        font-size: 1.2em;
+        font-size: 1.3em;
+        padding: 12px 16px;
+        width: 100%;
     }
     
-    .btn-delete {
+    .btn-delete,
+    .btn-edit,
+    .btn-danger {
         width: 100%;
         justify-content: center;
-        padding: 12px 20px;
+        padding: 14px 20px;
+        font-size: 1em;
+    }
+
+    /* Botones de acción */
+    .budget-item-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-edit-budget,
+    .btn-delete-budget {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 18px;
+    }
+
+    /* Presupuesto */
+    .budget-header-actions {
+        margin-bottom: 20px;
+    }
+
+    .btn-new-budget {
+        width: 100%;
+        padding: 14px 24px;
+        font-size: 1em;
+    }
+
+    .budget-area-selector {
+        flex-direction: column;
+        gap: 10px;
     }
     
-    /* Presupuesto responsive */
-    .budget-item-footer {
+    .budget-area-tab {
+        width: 100%;
+        min-width: auto;
+        padding: 14px 16px;
+    }
+
+    .budget-summary-cards {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .budget-summary-card {
+        padding: 16px;
+    }
+
+    .summary-icon {
+        font-size: 2em;
+    }
+
+    /* Items de presupuesto */
+    .budget-item {
+        padding: 16px;
+    }
+
+    .budget-item-header {
         flex-direction: column;
         gap: 12px;
+        align-items: flex-start;
+    }
+
+    .budget-item-image {
+        width: 80px;
+        height: 80px;
+    }
+
+    .budget-item-body {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .budget-item-footer {
+        flex-direction: column;
+        gap: 14px;
     }
     
     .real-price-section {
         flex-direction: column;
         align-items: stretch;
+        gap: 10px;
+    }
+
+    .budget-item-checkbox {
+        padding: 12px 14px;
+        justify-content: center;
     }
     
     .real-price-input {
         width: 100%;
+        padding: 12px 14px;
+        font-size: 16px;
     }
     
     .btn-save-price {
         width: 100%;
         justify-content: center;
+        padding: 14px;
+        font-size: 1em;
     }
-    
-    .budget-summary-cards {
+
+    /* Items comprados en historial */
+    .item-comprado-card {
+        padding: 16px;
+    }
+
+    .item-comprado-title h4 {
+        font-size: 1.05em;
+    }
+
+    .item-comprado-image-thumb {
+        max-width: 120px;
+        max-height: 120px;
+    }
+
+    .item-comprado-prices {
         grid-template-columns: 1fr;
+        gap: 10px;
     }
-    
-    .budget-area-selector {
-        flex-direction: column;
+
+    .price-box {
+        padding: 14px;
     }
-    
-    .budget-area-tab {
+
+    /* Filtros */
+    .filter-section {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .filter-section label {
+        font-size: 0.9em;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .filter-section select {
         width: 100%;
+        font-size: 16px;
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    /* Resumen general */
+    .summary-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .summary-card {
+        padding: 18px;
+    }
+
+    .summary-card h3 {
+        font-size: 1em;
+    }
+
+    .summary-value {
+        font-size: 0.9em;
+        margin-bottom: 8px;
+    }
+
+    /* Categorías */
+    .categoria-item {
+        padding: 14px 16px;
+    }
+
+    .categoria-header {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
+
+    .categoria-nombre {
+        font-size: 1em;
+    }
+
+    .categoria-monto {
+        font-size: 1.15em;
+    }
+
+    .categoria-detalles {
+        padding: 10px;
+        font-size: 0.85em;
+    }
+
+    /* Modales */
+    .modal-content {
+        max-width: 95%;
+        margin: 20px;
+        padding: 0;
+    }
+
+    .modal-header {
+        padding: 18px 20px;
+    }
+
+    .modal-header h3 {
+        font-size: 1.2em;
+    }
+
+    .modal-close {
+        width: 32px;
+        height: 32px;
+        font-size: 28px;
+    }
+
+    .modal-footer {
+        padding: 16px 20px;
+        flex-direction: column-reverse;
+    }
+
+    .modal-footer .btn-cancel,
+    .modal-footer .btn-confirm {
+        width: 100%;
+        padding: 14px;
+        margin: 0;
+    }
+
+    .btn-cancel {
+        margin-top: 8px;
+    }
+
+    /* Confirmación */
+    .confirm-modal {
+        max-width: 90%;
+        margin: 20px;
+    }
+
+    .confirm-footer {
+        flex-direction: column-reverse;
+        gap: 8px;
+    }
+
+    .confirm-footer button {
+        width: 100%;
+        padding: 14px;
+    }
+
+    /* Notificaciones */
+    .notification-container {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+    }
+
+    .notification {
+        min-width: auto;
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 0.9em;
+    }
+
+    /* Loading screen */
+    .loading-content h2 {
+        font-size: 1.5em;
+    }
+
+    .loading-content p {
+        font-size: 0.9em;
+    }
+
+    /* File input */
+    .file-input {
+        font-size: 14px;
+        padding: 12px;
+    }
+
+    /* Image preview */
+    .image-preview img {
+        max-width: 100%;
+    }
+
+    /* Range slider */
+    .range-slider {
+        width: 100%;
+    }
+
+    .percentage-value {
+        font-size: 1.2em;
+    }
+
+    /* Ajustes para prevenir zoom en inputs en iOS */
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="date"],
+    input[type="week"],
+    input[type="password"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    /* Mejorar área táctil de checkboxes */
+    input[type="checkbox"] {
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+    }
+
+    /* Botón de cancelar edición */
+    #cancelEditBudgetItemBtn {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    /* Progress bars */
+    .progress-bar {
+        height: 32px;
+        border-radius: 8px;
+    }
+
+    .progress-fill {
+        font-size: 0.8em;
+        padding: 0 8px;
+    }
+
+    /* Badge TDC */
+    .badge-tdc {
+        font-size: 0.75em;
+        padding: 5px 10px;
+    }
+
+    /* Dashboard responsive */
+    .dashboard-header h2 {
+        font-size: 1.6em;
+    }
+
+    .dashboard-subtitle {
+        font-size: 0.95em;
+    }
+
+    .dashboard-summary-cards {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .dashboard-summary-cards .summary-card {
+        padding: 20px;
+    }
+
+    .dashboard-summary-cards .summary-card .card-icon {
+        font-size: 2.5em;
+    }
+
+    .dashboard-summary-cards .summary-card .card-value {
+        font-size: 1.6em;
+    }
+
+    .dashboard-charts {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .chart-card {
+        padding: 20px;
+    }
+
+    .chart-header h3 {
+        font-size: 1.15em;
+    }
+
+    .chart-header p {
+        font-size: 0.85em;
+    }
+
+    .chart-container {
+        height: 280px;
+    }
+
+    .chart-card.full-width .chart-container {
+        height: 350px;
+    }
+}
+
+/* Media query adicional para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+
+    .header-content h1 {
+        font-size: 1.4em;
+    }
+
+    .tab {
+        min-height: 55px;
+        padding: 14px;
+    }
+
+    /* Dashboard en pantallas muy pequeñas */
+    .dashboard-header {
+        padding: 16px;
+    }
+
+    .dashboard-header h2 {
+        font-size: 1.4em;
+    }
+
+    .dashboard-summary-cards .summary-card {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .dashboard-summary-cards .summary-card .card-icon {
+        font-size: 2.2em;
+    }
+
+    .dashboard-summary-cards .summary-card h3 {
+        font-size: 0.8em;
+    }
+
+    .dashboard-summary-cards .summary-card .card-value {
+        font-size: 1.4em;
+    }
+
+    .chart-card {
+        padding: 16px;
+    }
+
+    .chart-header h3 {
+        font-size: 1.05em;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+
+    .chart-card.full-width .chart-container {
+        height: 320px;
+    }
+
+    .tab-icon {
+        font-size: 24px;
+    }
+
+    .tab-text {
+        font-size: 0.95em;
+    }
+
+    .card {
+        padding: 16px 12px;
+    }
+
+    .card-header h2 {
+        font-size: 1.3em;
+    }
+
+    .item-card {
+        padding: 14px;
+    }
+
+    .budget-item {
+        padding: 14px;
+    }
+
+    .item-amount {
+        font-size: 1.15em;
+    }
+
+    .categoria-monto {
+        font-size: 1em;
+    }
+
+    .notification {
+        font-size: 0.85em;
+        padding: 12px 14px;
+    }
+}
+
+/* Optimizaciones táctiles para todos los dispositivos touch */
+@media (hover: none) and (pointer: coarse) {
+    /* Aumentar área táctil de todos los botones */
+    button,
+    .btn-primary,
+    .btn-secondary,
+    .btn-edit,
+    .btn-delete,
+    .btn-cancel,
+    .btn-confirm {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px 20px;
+    }
+
+    /* Tabs más grandes para tocar */
+    .tab {
+        min-height: 56px;
+    }
+
+    .historial-tab {
+        min-height: 48px;
+    }
+
+    /* Checkboxes más grandes */
+    input[type="checkbox"] {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        min-height: 24px;
+    }
+
+    /* Inputs más espaciosos */
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+        padding: 12px 14px;
+    }
+
+    /* Eliminar efectos hover en dispositivos táctiles */
+    .tab:hover,
+    .btn-primary:hover,
+    .item-card:hover {
+        transform: none;
+    }
+
+    /* Efecto de tap para feedback visual */
+    .tab:active,
+    .btn-primary:active,
+    button:active {
+        transform: scale(0.98);
+        opacity: 0.9;
     }
 }

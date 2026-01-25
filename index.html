@@ -2,9 +2,15 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#1e3c72">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Control de Obras">
+    <meta name="description" content="Gestión completa de tu proyecto de construcción">
     <title>Control de Obras</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -26,11 +32,11 @@
                 <p class="subtitle">Gestión completa de tu proyecto</p>
             </div>
             <div class="header-actions">
-                <button onclick="exportData()" class="btn-export">📤 Exportar</button>
-                <label class="btn-import">
-                    📥 Importar
-                    <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display: none">
-                </label>
+                <button id="refreshButton" onclick="refreshData()" class="btn-refresh">
+                    <span class="refresh-icon">🔄</span>
+                    <span class="refresh-text">Actualizar datos</span>
+                </button>
+                <span id="lastUpdate" class="last-update-text"></span>
             </div>
         </header>
 
@@ -47,13 +53,13 @@
                 <span class="tab-icon">💵</span>
                 <span class="tab-text">Nuevo Cambio</span>
             </button>
-            <button class="tab" onclick="showTab('nuevo-avance')" data-icon="📊">
-                <span class="tab-icon">📊</span>
-                <span class="tab-text">Nuevo Avance</span>
-            </button>
             <button class="tab" onclick="showTab('presupuesto')" data-icon="💼">
                 <span class="tab-icon">💼</span>
                 <span class="tab-text">Presupuesto</span>
+            </button>
+            <button class="tab" onclick="showTab('dashboard')" data-icon="📊">
+                <span class="tab-icon">📊</span>
+                <span class="tab-text">Dashboard</span>
             </button>
             <button class="tab" onclick="showTab('historial')" data-icon="📋">
                 <span class="tab-icon">📋📈</span>
@@ -172,37 +178,6 @@
             </div>
         </div>
 
-        <!-- Tab: Nuevo Avance -->
-        <div id="tab-nuevo-avance" class="tab-content">
-            <div class="card">
-                <div class="card-header">
-                    <h2>📊 Registrar Avance Semanal</h2>
-                    <p class="card-description">Documenta el progreso de la obra</p>
-                </div>
-                <form onsubmit="addAvance(event)" class="modern-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>📅 Semana</label>
-                            <input type="week" id="avanceSemana" required>
-                        </div>
-                        <div class="form-group">
-                            <label>📌 Título</label>
-                            <input type="text" id="avanceTitulo" placeholder="Ej: Construcción de paredes" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>📝 Descripción Detallada</label>
-                        <textarea id="avanceDescripcion" placeholder="Describe el trabajo realizado durante esta semana..." required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>📈 Porcentaje de Avance:  <span id="porcentajeValue" class="percentage-value">0%</span></label>
-                        <input type="range" id="avancePorcentaje" min="0" max="100" value="0" oninput="updatePorcentaje(this.value)" class="range-slider">
-                    </div>
-                    <button type="submit" class="btn-primary">✅ Registrar Avance</button>
-                </form>
-            </div>
-        </div>
-
         <!-- Tab: Presupuesto -->
         <div id="tab-presupuesto" class="tab-content">
             <div class="card">
@@ -306,6 +281,119 @@
             </div>
         </div>
 
+        <!-- Tab: Dashboard -->
+        <div id="tab-dashboard" class="tab-content">
+            <div class="dashboard-header">
+                <h2>📊 Dashboard del Proyecto</h2>
+                <p class="dashboard-subtitle">Visualización completa de gastos, presupuestos y estado financiero</p>
+            </div>
+
+            <!-- Tarjetas de Resumen -->
+            <div class="dashboard-summary-cards">
+                <div class="summary-card total-obra">
+                    <div class="card-icon">💰</div>
+                    <div class="card-info">
+                        <h3>Costo Total Obra</h3>
+                        <p class="card-value" id="dashTotalObra">$0.00</p>
+                        <span class="card-label">Presupuestos + Gastos</span>
+                    </div>
+                </div>
+                <div class="summary-card gastos">
+                    <div class="card-icon">🛒</div>
+                    <div class="card-info">
+                        <h3>Gastos Totales</h3>
+                        <p class="card-value" id="dashTotalGastos">$0.00</p>
+                        <span class="card-label">Compras realizadas</span>
+                    </div>
+                </div>
+                <div class="summary-card presupuestos">
+                    <div class="card-icon">📋</div>
+                    <div class="card-info">
+                        <h3>Presupuestos</h3>
+                        <p class="card-value" id="dashTotalPresupuestos">$0.00</p>
+                        <span class="card-label">Items comprados</span>
+                    </div>
+                </div>
+                <div class="summary-card pagos">
+                    <div class="card-icon">👷</div>
+                    <div class="card-info">
+                        <h3>Pagos Mano Obra</h3>
+                        <p class="card-value" id="dashTotalPagos">$0.00</p>
+                        <span class="card-label">Pagos realizados</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficas -->
+            <div class="dashboard-charts">
+                <!-- Gastos por Categoría -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h3>📊 Distribución de Gastos por Categoría</h3>
+                        <p>Incluye gastos directos y presupuestos</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartCategories"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfica de Presupuesto vs Real -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>💰 Presupuestado vs Real</h3>
+                        <p>Comparación por presupuesto</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartPresupuestoReal"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfica de evolución temporal -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>📈 Evolución Temporal</h3>
+                        <p>Gastos por mes</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartEvolucion"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfica de métodos de pago -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>💳 Métodos de Pago</h3>
+                        <p>Efectivo vs Tarjeta de Crédito</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartMetodosPago"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfica de estado de presupuestos -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>📦 Estado de Items</h3>
+                        <p>Comprados vs Pendientes</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartEstadoItems"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top categorías -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h3>🏆 Top 10 Categorías con Mayor Gasto</h3>
+                        <p>Ranking de inversión por categoría</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartTopCategorias"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Tab: Historial y Resumen -->
 
     <!-- Modal para crear nuevo presupuesto -->
@@ -349,15 +437,6 @@
 
     <!-- Firebase SDKs -->
         <div id="tab-historial" class="tab-content">
-            <!-- Botón de refresh -->
-            <div class="refresh-section">
-                <button id="refreshButton" onclick="refreshData()" class="btn-refresh">
-                    <span class="refresh-icon">🔄</span>
-                    <span class="refresh-text">Actualizar datos</span>
-                </button>
-                <span id="lastUpdate" class="last-update-text"></span>
-            </div>
-
             <!-- Loading overlay para el tab -->
             <div id="historialLoading" class="tab-loading hidden">
                 <div class="loading-spinner"></div>
@@ -390,7 +469,7 @@
                     <button class="historial-tab active" onclick="showHistorial('gastos')">💰 Gastos</button>
                     <button class="historial-tab" onclick="showHistorial('pagos')">👷 Pagos</button>
                     <button class="historial-tab" onclick="showHistorial('cambios')">💵 Cambios</button>
-                    <button class="historial-tab" onclick="showHistorial('avances')">📊 Avances</button>
+                    <button class="historial-tab" onclick="showHistorial('items-comprados')">🛒 Items Comprados</button>
                 </div>
 
                 <div id="historial-gastos" class="historial-content active">
@@ -418,8 +497,14 @@
                     <div id="cambiosLista"></div>
                 </div>
 
-                <div id="historial-avances" class="historial-content">
-                    <div id="avancesLista"></div>
+                <div id="historial-items-comprados" class="historial-content">
+                    <div class="filter-section">
+                        <label>🔍 Filtrar por presupuesto: </label>
+                        <select id="filtroPresupuesto" onchange="filterItemsComprados()">
+                            <option value="">Todos los presupuestos</option>
+                        </select>
+                    </div>
+                    <div id="itemsCompradosLista"></div>
                 </div>
             </div>
         </div>

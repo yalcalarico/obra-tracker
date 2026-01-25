@@ -8,11 +8,38 @@ Aplicación web para llevar control detallado de obras en casa.
 - ✅ Control de pagos semanales
 - ✅ Conversión de dólares a pesos argentinos
 - ✅ Filtros por categoría
-- ✅ Registro de avance semanal
+- ✅ Gestión de presupuestos con items
+- ✅ Edición completa de items de presupuesto
+- ✅ Historial de items comprados
 - ✅ Exportar/Importar datos
 - ✅ Reportes y resumen detallado
-- ✅ Navegación por pestañas mejorada
-- 🔥 **NUEVO**: Integración con Firebase (opcional)
+- 📊 **NUEVO**: Dashboard con gráficas interactivas
+- 📱 **NUEVO**: Optimizado para dispositivos móviles
+- 🔥 Integración con Firebase
+
+## 📊 Dashboard Interactivo
+
+El nuevo dashboard incluye:
+
+1. **Tarjetas de Resumen**
+   - Costo total de la obra
+   - Total de gastos
+   - Total de presupuestos comprados
+   - Total de pagos a mano de obra
+
+2. **Gráficas Visuales**
+   - 🍩 Distribución de gastos por categoría (incluyendo presupuestos)
+   - 📊 Presupuestado vs Real por presupuesto
+   - 📈 Evolución temporal de gastos por mes
+   - 💳 Métodos de pago (Efectivo vs Tarjeta)
+   - 📦 Estado de items (Comprados vs Pendientes)
+   - 🏆 Top 10 categorías con mayor gasto
+
+3. **Características**
+   - Gráficas interactivas con Chart.js
+   - Responsive design para móviles
+   - Actualización automática con los datos
+   - Tooltips informativos con porcentajes y montos
 
 ## 🚀 Inicio Rápido
 
