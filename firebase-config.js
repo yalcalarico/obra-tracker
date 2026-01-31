@@ -163,6 +163,16 @@ async function savePagoToFirebase(pago) {
     }
 }
 
+// Guardar cambio en Firebase
+async function saveCambioToFirebase(cambio) {
+    try {
+        const docRef = await db.collection('cambios').add(cambio);
+        return docRef.id;
+    } catch (error) {
+        console.error('Error al guardar cambio:', error);
+        throw error;
+    }
+}
 
 // Eliminar documento de Firebase
 async function deleteFromFirebase(collection, id) {
