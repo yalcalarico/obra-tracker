@@ -248,10 +248,14 @@ async function savePresupuestoItemToFirebase(item) {
 async function updatePresupuestoItemInFirebase(item) {
     try {
         await db.collection('presupuestoItems').doc(item.id).update({
+            descripcion: item.descripcion,
+            nombre: item.nombre,
+            valorEstimado: item.valorEstimado,
+            imagen: item.imagen ?? null,
             comprado: item.comprado,
             valorReal: item.valorReal,
-            conTarjeta: item.conTarjeta,
-            cuotas: item.cuotas
+            conTarjeta: item.conTarjeta ?? false,
+            cuotas: item.cuotas ?? null
         });
         console.log('✅ Item de presupuesto actualizado');
     } catch (error) {
