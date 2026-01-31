@@ -163,6 +163,16 @@ async function savePagoToFirebase(pago) {
     }
 }
 
+// Guardar cambio en Firebase
+async function saveCambioToFirebase(cambio) {
+    try {
+        const docRef = await db.collection('cambios').add(cambio);
+        return docRef.id;
+    } catch (error) {
+        console.error('Error al guardar cambio:', error);
+        throw error;
+    }
+}
 
 // Eliminar documento de Firebase
 async function deleteFromFirebase(collection, id) {
@@ -238,10 +248,14 @@ async function savePresupuestoItemToFirebase(item) {
 async function updatePresupuestoItemInFirebase(item) {
     try {
         await db.collection('presupuestoItems').doc(item.id).update({
+            descripcion: item.descripcion,
+            nombre: item.nombre,
+            valorEstimado: item.valorEstimado,
+            imagen: item.imagen ?? null,
             comprado: item.comprado,
             valorReal: item.valorReal,
-            conTarjeta: item.conTarjeta,
-            cuotas: item.cuotas
+            conTarjeta: item.conTarjeta ?? false,
+            cuotas: item.cuotas ?? null
         });
         console.log('✅ Item de presupuesto actualizado');
     } catch (error) {
