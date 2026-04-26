@@ -669,7 +669,7 @@ function renderResumen() {
         .reduce((sum, g) => sum + g.cantidad, 0);
     
     const totalPagos = data.pagos.reduce((sum, p) => sum + p.cantidad, 0);
-    const totalObra = 24300000;
+    const totalObra = 24750000;
     const faltantePagos = totalObra - totalPagos;
     
     const totalDolaresComprados = data.cambios.reduce((sum, c) => sum + c.dolares, 0);
